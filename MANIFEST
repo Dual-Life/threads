@@ -6,7 +6,6 @@ threads.pm
 threads.xs
 threads.h
 ppport.h
-typemap
 hints/linux.pl
 hints/hpux.pl
 t/basic.t
@@ -20,6 +19,7 @@ t/join.t
 t/kill.t
 t/libc.t
 t/list.t
+t/pod.t
 t/problems.t
 t/stack.t
 t/stack_env.t
