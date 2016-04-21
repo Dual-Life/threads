@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.16 Thu Mar 23 09:37:10 EST 2006
+	- Added 'NORECURS' flag back to Makefile.PL for core
+
 1.15 Wed Mar 22 13:46:51 EST 2006
 	- BUG FIX: Replaced SvPV_nolen_const macro
 	- Disabled closure return test again and added note in POD

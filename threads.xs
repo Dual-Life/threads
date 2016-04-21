@@ -461,8 +461,8 @@ Perl_ithread_create(
     SV         **tmps_tmp = PL_tmps_stack;
     IV           tmps_ix  = PL_tmps_ix;
 #ifndef WIN32
-    int          failure;
-    const char  *panic = NULL;
+    int          rc_thread_create = 0;
+    int          rc_stack_size = 0;
 #endif
 
     MUTEX_LOCK(&create_destruct_mutex);
@@ -587,36 +587,37 @@ Perl_ithread_create(
 
 #  ifdef _POSIX_THREAD_ATTR_STACKSIZE
         /* Set thread's stack size */
-        if ((thread->stack_size > 0) &&
-            pthread_attr_setstacksize(&attr, thread->stack_size))
-        {
-            panic = "PANIC: pthread_attr_setstacksize failed";
+        if (thread->stack_size > 0) {
+            rc_stack_size = pthread_attr_setstacksize(&attr, thread->stack_size);
         }
 #  endif
 
         /* Create the thread */
+        if (! rc_stack_size) {
 #  ifdef OLD_PTHREADS_API
-        failure = (panic) ? 1 : pthread_create(&thread->thr,
-                                               attr,
-                                               Perl_ithread_run,
-                                               (void *)thread);
+            rc_thread_create = pthread_create(&thread->thr,
+                                              attr,
+                                              Perl_ithread_run,
+                                              (void *)thread);
 #  else
 #    if defined(HAS_PTHREAD_ATTR_SETSCOPE) && defined(PTHREAD_SCOPE_SYSTEM)
-        pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM );
+            pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM );
 #    endif
-        failure = (panic) ? 1 : pthread_create(&thread->thr,
-                                               &attr,
-                                               Perl_ithread_run,
-                                               (void *)thread);
+            rc_thread_create = pthread_create(&thread->thr,
+                                              &attr,
+                                              Perl_ithread_run,
+                                              (void *)thread);
 #  endif
+        }
 
 #  ifdef _POSIX_THREAD_ATTR_STACKSIZE
         /* Try to get thread's actual stack size */
         {
             size_t stacksize;
             if (! pthread_attr_getstacksize(&attr, &stacksize)) {
-                if (stacksize)
+                if (stacksize) {
                     thread->stack_size = (UV)stacksize;
+                }
             }
         }
 #  endif
@@ -627,14 +628,18 @@ Perl_ithread_create(
 #ifdef WIN32
     if (thread->handle == NULL) {
 #else
-    if (failure) {
+    if (rc_thread_create || rc_stack_size) {
 #endif
         MUTEX_UNLOCK(&create_destruct_mutex);
         sv_2mortal(params);
         Perl_ithread_destruct(aTHX_ thread);
 #ifndef WIN32
-        if (panic)
-            Perl_croak(aTHX_ panic);
+        if (ckWARN_d(WARN_THREADS)) {
+            if (rc_stack_size)
+                Perl_warn(aTHX_ "Thread creation failed: pthread_attr_setstacksize(%" UVuf ") returned %d", thread->stack_size, rc_stack_size);
+            else if (rc_thread_create && ckWARN_d(WARN_THREADS))
+                Perl_warn(aTHX_ "Thread creation failed: pthread_create returned %d", rc_thread_create);
+        }
 #endif
         return (&PL_sv_undef);
     }

@@ -22,10 +22,16 @@ WriteMakefile(
         'XSLoader'        => 0,
     },
     'INSTALLDIRS'       => 'perl',
+
+    # In core, ext/threads/shared is a completely different module,
+    # so don't recurse into it.
+    'NORECURS'          => 1,
+
     ((ExtUtils::MakeMaker->VERSION() lt '6.25') ?
         ('PL_FILES' => { })            : ()),
     ((ExtUtils::MakeMaker->VERSION() gt '6.30') ?
         ('LICENSE'  => 'perl')         : ()),
+
     'CCFLAGS'           => ($PERL_CORE) ? '' : '-DHAVE_PPPORT_H',
 );
 
