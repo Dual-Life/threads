@@ -53,6 +53,7 @@ sub plan {
 	}
     } else {
 	my %plan = @_;
+	$plan{skip_all} and skip_all($plan{skip_all});
 	$n = $plan{tests};
     }
     _print "1..$n\n" unless $noplan;
@@ -420,6 +421,14 @@ sub unlike ($$@) { like_yn (1,@_) }; # 1 for un-
 
 sub like_yn ($$$@) {
     my ($flip, undef, $expected, $name, @mess) = @_;
+
+    # We just accept like(..., qr/.../), not like(..., '...'), and
+    # definitely not like(..., '/.../') like
+    # Test::Builder::maybe_regex() does.
+    unless (re::is_regexp($expected)) {
+	die "PANIC: The value '$expected' isn't a regexp. The like() function needs a qr// pattern, not a string";
+    }
+
     my $pass;
     $pass = $_[1] =~ /$expected/ if !$flip;
     $pass = $_[1] !~ /$expected/ if $flip;
@@ -564,7 +573,8 @@ USE_OK
 #   progs    => [ multi-liner (avoid quotes) ]
 #   progfile => perl script
 #   stdin    => string to feed the stdin (or undef to redirect from /dev/null)
-#   stderr   => redirect stderr to stdout
+#   stderr   => If 'devnull' suppresses stderr, if other TRUE value redirect
+#               stderr to stdout
 #   args     => [ command-line arguments to the perl program ]
 #   verbose  => print the command line
 
@@ -680,7 +690,12 @@ sub _create_runperl { # Create the string to qx in runperl().
     if (defined $args{args}) {
 	$runperl = _quote_args($runperl, $args{args});
     }
-    $runperl = $runperl . ' 2>&1' if $args{stderr};
+    if (exists $args{stderr} && $args{stderr} eq 'devnull') {
+        $runperl = $runperl . ($is_mswin ? ' 2>nul' : ' 2>/dev/null');
+    }
+    elsif ($args{stderr}) {
+        $runperl = $runperl . ' 2>&1';
+    }
     if ($args{verbose}) {
 	my $runperldisplay = $runperl;
 	$runperldisplay =~ s/\n/\n\#/g;
@@ -867,6 +882,28 @@ sub tempfile {
 	}
     }
     die "Can't find temporary file name starting \"tmp$$\"";
+}
+
+# register_tempfile - Adds a list of files to be removed at the end of the current test file
+# Arguments :
+#   a list of files to be removed later
+
+# returns a count of how many file names were actually added
+
+# Reuses %tmpfiles so that tempfile() will also skip any files added here
+# even if the file doesn't exist yet.
+
+sub register_tempfile {
+    my $count = 0;
+    for( @_ ){
+	if( $tmpfiles{$_} ){
+	    _print_stderr "# Temporary file '$_' already added\n";
+	}else{
+	    $tmpfiles{$_} = 1;
+	    $count = $count + 1;
+	}
+    }
+    return $count;
 }
 
 # This is the temporary file for _fresh_perl
@@ -1530,8 +1567,14 @@ sub watchdog ($;$)
 
             # Add END block to parent to terminate and
             #   clean up watchdog process
-            eval "END { local \$! = 0; local \$? = 0;
-                        wait() if kill('KILL', $watchdog); };";
+            # Win32 watchdog is launched by cmd.exe shell, so use process group
+            # kill, otherwise the watchdog is never killed and harness waits
+            # every time for the timeout, #121395
+            eval( $is_mswin ?
+            "END { local \$! = 0; local \$? = 0;
+                        wait() if kill('-KILL', $watchdog); };"
+            : "END { local \$! = 0; local \$? = 0;
+                        wait() if kill('KILL', $watchdog); };");
             return;
         }
 
@@ -1616,59 +1659,6 @@ WATCHDOG_VIA_ALARM:
             kill($sig, $pid_to_kill);
         };
     }
-}
-
-# The following 2 functions allow tests to work on both EBCDIC and
-# ASCII-ish platforms.  They convert string scalars between the native
-# character set and the set of 256 characters which is usually called
-# Latin1.
-
-sub native_to_latin1($) {
-    my $string = shift;
-
-    return $string if ord('^') == 94;   # ASCII, Latin1
-    my $output = "";
-    for my $i (0 .. length($string) - 1) {
-        $output .= chr(ord_native_to_latin1(ord(substr($string, $i, 1))));
-    }
-    # Preserve utf8ness of input onto the output, even if it didn't need to be
-    # utf8
-    utf8::upgrade($output) if utf8::is_utf8($string);
-
-    return $output;
-}
-
-sub latin1_to_native($) {
-    my $string = shift;
-
-    return $string if ord('^') == 94;   # ASCII, Latin1
-    my $output = "";
-    for my $i (0 .. length($string) - 1) {
-        $output .= chr(ord_latin1_to_native(ord(substr($string, $i, 1))));
-    }
-    # Preserve utf8ness of input onto the output, even if it didn't need to be
-    # utf8
-    utf8::upgrade($output) if utf8::is_utf8($string);
-
-    return $output;
-}
-
-sub ord_latin1_to_native {
-    # given an input code point, return the platform's native
-    # equivalent value.  Anything above latin1 is itself.
-
-    my $ord = shift;
-    return $ord if ord('^') == 94;   # ASCII, Latin1
-    return utf8::unicode_to_native($ord);
-}
-
-sub ord_native_to_latin1 {
-    # given an input platform code point, return the latin1 equivalent value.
-    # Anything above latin1 is itself.
-
-    my $ord = shift;
-    return $ord if ord('^') == 94;   # ASCII, Latin1
-    return utf8::native_to_unicode($ord);
 }
 
 1;

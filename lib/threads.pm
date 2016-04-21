@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.92';
+our $VERSION = '1.96';
 my $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -134,7 +134,17 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.92
+This document describes threads version 1.96
+
+=head1 WARNING
+
+The "interpreter-based threads" provided by Perl are not the fast, lightweight
+system for multitasking that one might expect or hope for.  Threads are
+implemented in a way that make them easy to misuse.  Few people know how to
+use them correctly or will be able to provide help.
+
+The use of interpreter-based threads in perl is officially
+L<discouraged|perlpolicy/discouraged>.
 
 =head1 SYNOPSIS
 
@@ -996,7 +1006,8 @@ signalling behavior is only in effect in the following situations:
 
 =item * Perl has been built with C<PERL_OLD_SIGNALS> (see C<perl -V>).
 
-=item * The environment variable C<PERL_SIGNALS> is set to C<unsafe> (see L<perlrun/"PERL_SIGNALS">).
+=item * The environment variable C<PERL_SIGNALS> is set to C<unsafe>
+(see L<perlrun/"PERL_SIGNALS">).
 
 =item * The module L<Perl::Unsafe::Signals> is used.
 
