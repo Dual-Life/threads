@@ -8,10 +8,12 @@ threads.h
 ppport.h
 typemap
 hints/linux.pl
+hints/hpux.pl
 t/basic.t
 t/blocks.t
 t/context.t
 t/end.t
+t/exit.t
 t/free.t
 t/free2.t
 t/join.t
