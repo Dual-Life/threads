@@ -30,7 +30,7 @@ BEGIN {
     }
 
     $| = 1;
-    print("1..33\n");   ### Number of tests that will be run ###
+    print("1..34\n");   ### Number of tests that will be run ###
 };
 
 print("ok 1 - Loaded\n");
@@ -171,7 +171,7 @@ package main;
 
 # bugid #24165
 
-run_perl(prog => 'use threads 1.65;' .
+run_perl(prog => 'use threads 1.66;' .
                  'sub a{threads->create(shift)} $t = a sub{};' .
                  '$t->tid; $t->join; $t->tid',
          nolib => ($ENV{PERL_CORE}) ? 0 : 1,
@@ -191,6 +191,14 @@ fresh_perl_is(<<'EOI', 'ok', { }, 'thread sub via $_[0]');
     use threads;
     sub thr { threads->new($_[0]); }
     thr(sub { })->join;
+    print 'ok';
+EOI
+
+# [perl #45053]  Memory corruption from eval return in void context
+fresh_perl_is(<<'EOI', 'ok', { }, 'void eval return');
+    use threads;
+    threads->create(sub { eval '1' });
+    $_->join() for threads->list;
     print 'ok';
 EOI
 
