@@ -30,6 +30,7 @@ SKIP: {
                             qr/^exit$/,
                             qr/^async$/,
                             qr/^\(/,
+                            qr/^(all|running|joinable)$/,
                         ],
                         'private' => [
                             qr/^import$/,

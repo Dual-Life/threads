@@ -173,15 +173,15 @@ A simplistic example illustrating the following:
 
 =over
 
-=item Management of a pool of threads
+=item * Management of a pool of threads
 
-=item Communication between threads using queues
+=item * Communication between threads using queues
 
-=item Timing out and cancelling threads
+=item * Timing out and cancelling threads
 
-=item Interrupting a threaded program
+=item * Interrupting a threaded program
 
-=item Cleaning up threads before terminating
+=item * Cleaning up threads before terminating
 
 =back
 
