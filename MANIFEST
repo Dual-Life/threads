@@ -23,6 +23,7 @@ t/list.t
 t/problems.t
 t/stack.t
 t/stack_env.t
+t/state.t
 t/stress_cv.t
 t/stress_re.t
 t/stress_string.t
