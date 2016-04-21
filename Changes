@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.81 Mon Sep 27 17:36:31 2010
+	- Make compatible with Perl 5.13.2 and higher
+
 1.79 Fri Sep 24 18:40:59 2010
 	- Fix failing tests in t/kill2.t
 
