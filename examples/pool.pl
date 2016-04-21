@@ -60,7 +60,7 @@ MAIN:
              $needed--)
         {
             # New thread
-            threads->new('worker', $queue, $TIMEOUT);
+            threads->create('worker', $queue, $TIMEOUT);
         }
 
         # Wait for any threads to finish

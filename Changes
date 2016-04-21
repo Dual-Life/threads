@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.65 Wed Sep  5 13:19:09 2007
+	- Skip spelling test (maintainer only)
+
 1.64 Sun Aug 19 13:59:16 EDT 2007
 	- Documented cwd and %ENV issues wrt threads
 	- Sundry test suite fixes
