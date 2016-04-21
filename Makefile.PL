@@ -1,13 +1,9 @@
 # Module makefile for threads (using ExtUtils::MakeMaker)
 
+require 5.008;
+
 use strict;
 use warnings;
-
-use Config;
-BEGIN {
-    die("OS unsupported:  ERROR: This Perl not built to support threads\n")
-        if (! $Config{'useithreads'});
-}
 
 use ExtUtils::MakeMaker;
 
