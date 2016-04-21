@@ -1,5 +1,10 @@
 Revision history for Perl extension threads.
 
+1.82 Fri Dec 24 16:21:56 2010
+	- Document issue with open dir handles
+	- Sync from blead
+	- POD update
+
 1.81 Mon Sep 27 17:36:31 2010
 	- Make compatible with Perl 5.13.2 and higher
 

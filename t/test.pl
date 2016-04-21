@@ -26,6 +26,7 @@ my $Perl;       # Safer version of $^X set by which_perl()
 
 $TODO = 0;
 $NO_ENDING = 0;
+$Tests_Are_Passing = 1;
 
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
@@ -122,7 +123,12 @@ sub _ok {
 	$out = $pass ? "ok $test" : "not ok $test";
     }
 
-    $out = $out . " # TODO $TODO" if $TODO;
+    if ($TODO) {
+	$out = $out . " # TODO $TODO";
+    } else {
+	$Tests_Are_Passing = 0 unless $pass;
+    }
+
     _print "$out\n";
 
     unless ($pass) {
@@ -558,8 +564,12 @@ sub runperl {
 	    join $sep, grep { $_ ne "" and $_ ne "." and -d $_ and
 		($is_mswin or $is_vms or !(stat && (stat _)[2]&0022)) }
 		    split quotemeta ($sep), $1;
-	$ENV{PATH} = $ENV{PATH} . "$sep/bin" if $is_cygwin;  # Must have /bin under Cygwin
-
+	if ($is_cygwin) {   # Must have /bin under Cygwin
+	    if (length $ENV{PATH}) {
+		$ENV{PATH} = $ENV{PATH} . $sep;
+	    }
+	    $ENV{PATH} = $ENV{PATH} . '/bin';
+	}
 	$runperl =~ /(.*)/s;
 	$runperl = $1;
 
@@ -626,10 +636,16 @@ sub which_perl {
 }
 
 sub unlink_all {
+    my $count = 0;
     foreach my $file (@_) {
         1 while unlink $file;
-        _print_stderr "# Couldn't unlink '$file': $!\n" if -f $file;
+	if( -f $file ){
+	    _print_stderr "# Couldn't unlink '$file': $!\n";
+	}else{
+	    ++$count;
+	}
     }
+    $count;
 }
 
 my %tmpfiles;
@@ -965,7 +981,7 @@ sub watchdog ($;$)
     # Use a watchdog thread because either 'threads' is loaded,
     #   or fork() failed
     if (eval 'require threads; 1') {
-        threads->create(sub {
+        'threads'->create(sub {
                 # Load POSIX if available
                 eval { require POSIX; };
 
@@ -1123,6 +1139,24 @@ sub latin1_to_native($) {
 
     eval '$string =~ tr/' . $straight . '/' . $$cp . '/';
     return $string;
+}
+
+sub ord_latin1_to_native {
+    # given an input code point, return the platform's native
+    # equivalent value.  Anything above latin1 is itself.
+
+    my $ord = shift;
+    return $ord if $ord > 255;
+    return ord latin1_to_native(chr $ord);
+}
+
+sub ord_native_to_latin1 {
+    # given an input platform code point, return the latin1 equivalent value.
+    # Anything above latin1 is itself.
+
+    my $ord = shift;
+    return $ord if $ord > 255;
+    return ord native_to_latin1(chr $ord);
 }
 
 1;

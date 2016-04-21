@@ -63,6 +63,7 @@ MSWin32
 pthreads
 SIGTERM
 TID
+Config.pm
 
 Hedden
 Soderberg
