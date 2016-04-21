@@ -11,7 +11,6 @@ hints/hpux.pl
 t/basic.t
 t/blocks.t
 t/context.t
-t/embed.t
 t/end.t
 t/err.t
 t/exit.t

@@ -4,7 +4,7 @@
 /*
 ----------------------------------------------------------------------
 
-    ppport.h -- Perl/Pollution/Portability Version 3.10
+    ppport.h -- Perl/Pollution/Portability Version 3.11
 
     Automatically created by Devel::PPPort running under perl 5.008008.
 
@@ -21,7 +21,7 @@ SKIP
 
 =head1 NAME
 
-ppport.h - Perl/Pollution/Portability version 3.10
+ppport.h - Perl/Pollution/Portability version 3.11
 
 =head1 SYNOPSIS
 
@@ -340,7 +340,7 @@ module from CPAN.
 
 =head1 COPYRIGHT
 
-Version 3.x, Copyright (c) 2004-2006, Marcus Holland-Moritz.
+Version 3.x, Copyright (c) 2004-2007, Marcus Holland-Moritz.
 
 Version 2.x, Copyright (C) 2001, Paul Marquess.
 
@@ -357,7 +357,7 @@ See L<Devel::PPPort>.
 
 use strict;
 
-my $VERSION = 3.10;
+my $VERSION = 3.11;
 
 my %opt = (
   quiet     => 0,
@@ -492,7 +492,7 @@ IVdf|5.006000||p
 LEAVE|||
 LVRET|||
 MARK|||
-MULTICALL||5.009004|
+MULTICALL||5.009005|
 MY_CXT_CLONE|5.009002||p
 MY_CXT_INIT|5.007003||p
 MY_CXT|5.007003||p
@@ -530,7 +530,7 @@ PAD_SET_CUR|||
 PAD_SVl|||
 PAD_SV|||
 PERL_ABS|5.008001||p
-PERL_BCDVERSION|5.009004||p
+PERL_BCDVERSION|5.009005||p
 PERL_GCC_BRACE_GROUPS_FORBIDDEN|5.008001||p
 PERL_INT_MAX|5.004000||p
 PERL_INT_MIN|5.004000||p
@@ -547,7 +547,7 @@ PERL_MAGIC_envelem|5.007002||p
 PERL_MAGIC_env|5.007002||p
 PERL_MAGIC_ext|5.007002||p
 PERL_MAGIC_fm|5.007002||p
-PERL_MAGIC_glob|5.007002||p
+PERL_MAGIC_glob|5.009005||p
 PERL_MAGIC_isaelem|5.007002||p
 PERL_MAGIC_isa|5.007002||p
 PERL_MAGIC_mutex|5.007002||p
@@ -602,9 +602,10 @@ PERL_USE_GCC_BRACE_GROUPS|5.009004||p
 PERL_USHORT_MAX|5.004000||p
 PERL_USHORT_MIN|5.004000||p
 PERL_VERSION|5.006000||p
+PL_DBsignal|5.005000||p
 PL_DBsingle|||pn
 PL_DBsub|||pn
-PL_DBtrace|||n
+PL_DBtrace|||pn
 PL_Sv|5.005000||p
 PL_compiling|5.004050||p
 PL_copline|5.005000||p
@@ -619,6 +620,7 @@ PL_errgv|5.004050||p
 PL_hexdigit|5.005000||p
 PL_hints|5.005000||p
 PL_last_in_gv|||n
+PL_laststatval|5.005000||p
 PL_modglobal||5.005000|n
 PL_na|5.004050||pn
 PL_no_modify|5.006000||p
@@ -632,6 +634,7 @@ PL_rs|||n
 PL_signals|5.008001||p
 PL_stack_base|5.004050||p
 PL_stack_sp|5.004050||p
+PL_statcache|5.005000||p
 PL_stdingv|5.004050||p
 PL_sv_arenaroot|5.004050||p
 PL_sv_no|5.004050||pn
@@ -639,7 +642,7 @@ PL_sv_undef|5.004050||pn
 PL_sv_yes|5.004050||pn
 PL_tainted|5.004050||p
 PL_tainting|5.004050||p
-POP_MULTICALL||5.009004|
+POP_MULTICALL||5.009005|
 POPi|||n
 POPl|||n
 POPn|||n
@@ -653,7 +656,7 @@ PTR2UV|5.006000||p
 PTR2ul|5.007001||p
 PTRV|5.006000||p
 PUSHMARK|||
-PUSH_MULTICALL||5.009004|
+PUSH_MULTICALL||5.009005|
 PUSHi|||
 PUSHmortal|5.009002||p
 PUSHn|||
@@ -917,6 +920,8 @@ _aMY_CXT|5.007003||p
 _pMY_CXT|5.007003||p
 aMY_CXT_|5.007003||p
 aMY_CXT|5.007003||p
+aTHXR_|||p
+aTHXR|||p
 aTHX_|5.006000||p
 aTHX|5.006000||p
 add_data|||n
@@ -1016,7 +1021,6 @@ ck_return|||
 ck_rfun|||
 ck_rvconst|||
 ck_sassign|||
-ck_say|||
 ck_select|||
 ck_shift|||
 ck_sort|||
@@ -1067,6 +1071,7 @@ dNOOP|5.006000||p
 dORIGMARK|||
 dSP|||
 dTHR|5.004050||p
+dTHXR|||p
 dTHXa|5.006000||p
 dTHXoa|5.006000||p
 dTHX|5.006000||p
@@ -1294,7 +1299,7 @@ he_dup|||
 hek_dup|||
 hfreeentries|||
 hsplit|||
-hv_assert||5.009001|
+hv_assert||5.009005|
 hv_auxinit|||n
 hv_backreferences_p|||
 hv_clear_placeholders||5.009001|
@@ -1739,7 +1744,7 @@ pad_peg|||n
 pad_push|||
 pad_reset|||
 pad_setsv|||
-pad_sv||5.009004|
+pad_sv||5.009005|
 pad_swipe|||
 pad_tidy|||
 pad_undef|||
@@ -1791,6 +1796,7 @@ re_croak2|||
 re_dup|||
 re_intuit_start||5.006000|
 re_intuit_string||5.006000|
+readpipe_override|||
 realloc||5.007002|n
 reentrant_free|||
 reentrant_init|||
@@ -1805,7 +1811,13 @@ refcounted_he_value|||
 refkids|||
 refto|||
 ref||5.009003|
+reg_check_named_buff_matched|||
+reg_named_buff_sv|||
+reg_namedseq|||
 reg_node|||
+reg_recode|||
+reg_scan_name|||
+reg_stringify|||
 reganode|||
 regatom|||
 regbranch|||
@@ -1815,8 +1827,10 @@ regcppop|||
 regcppush|||
 regcurly|||n
 regdump||5.005000|
+regdupe|||
 regexec_flags||5.005000|
 reghop3|||n
+reghop4|||n
 reghopmaybe3|||n
 reginclass|||
 reginitcolors||5.006000|
@@ -1964,7 +1978,7 @@ stack_grow|||
 start_force|||
 start_glob|||
 start_subparse||5.004000|
-stashpv_hvname_match||5.009004|
+stashpv_hvname_match||5.009005|
 stdize_locale|||
 strEQ|||
 strGE|||
@@ -1973,7 +1987,6 @@ strLE|||
 strLT|||
 strNE|||
 str_to_version||5.006000|
-stringify_regexp|||
 strip_return|||
 strnEQ|||
 strnNE|||
@@ -2066,7 +2079,6 @@ sv_nosharing||5.007003|
 sv_nounlocking|||
 sv_nv||5.005000|
 sv_peek||5.005000|
-sv_pos_b2u_forwards|||
 sv_pos_b2u_midway|||
 sv_pos_b2u||5.006000|
 sv_pos_u2b_cached|||
@@ -3409,42 +3421,6 @@ __DATA__
 #  define Newxz(v,n,t)                   Newz(0,v,n,t)
 #endif
 
-#if ((PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5)))
-/* Replace: 1 */
-#  define PL_DBsingle               DBsingle
-#  define PL_DBsub                  DBsub
-#  define PL_Sv                     Sv
-#  define PL_compiling              compiling
-#  define PL_copline                copline
-#  define PL_curcop                 curcop
-#  define PL_curstash               curstash
-#  define PL_debstash               debstash
-#  define PL_defgv                  defgv
-#  define PL_diehook                diehook
-#  define PL_dirty                  dirty
-#  define PL_dowarn                 dowarn
-#  define PL_errgv                  errgv
-#  define PL_hexdigit               hexdigit
-#  define PL_hints                  hints
-#  define PL_na	                    na
-#  define PL_no_modify              no_modify
-#  define PL_perl_destruct_level    perl_destruct_level
-#  define PL_perldb                 perldb
-#  define PL_ppaddr                 ppaddr
-#  define PL_rsfp_filters           rsfp_filters
-#  define PL_rsfp                   rsfp
-#  define PL_stack_base             stack_base
-#  define PL_stack_sp               stack_sp
-#  define PL_stdingv                stdingv
-#  define PL_sv_arenaroot           sv_arenaroot
-#  define PL_sv_no                  sv_no
-#  define PL_sv_undef               sv_undef
-#  define PL_sv_yes                 sv_yes
-#  define PL_tainted                tainted
-#  define PL_tainting               tainting
-/* Replace: 0 */
-#endif
-
 #ifndef PERL_UNUSED_DECL
 #  ifdef HASATTRIBUTE
 #    if (defined(__GNUC__) && defined(__cplusplus)) || defined(__INTEL_COMPILER)
@@ -3661,15 +3637,73 @@ typedef NVTYPE NV;
 
 #define PERL_SIGNALS_UNSAFE_FLAG 0x0001
 
+#if ((PERL_VERSION < 8) || ((PERL_VERSION == 8) && (PERL_SUBVERSION < 0)))
+#  define D_PPP_PERL_SIGNALS_INIT   PERL_SIGNALS_UNSAFE_FLAG
+#else
+#  define D_PPP_PERL_SIGNALS_INIT   0
+#endif
+
 #if defined(NEED_PL_signals)
-static U32 DPPP_(my_PL_signals) = PERL_SIGNALS_UNSAFE_FLAG;
+static U32 DPPP_(my_PL_signals) = D_PPP_PERL_SIGNALS_INIT;
 #elif defined(NEED_PL_signals_GLOBAL)
-U32 DPPP_(my_PL_signals) = PERL_SIGNALS_UNSAFE_FLAG;
+U32 DPPP_(my_PL_signals) = D_PPP_PERL_SIGNALS_INIT;
 #else
 extern U32 DPPP_(my_PL_signals);
 #endif
 #define PL_signals DPPP_(my_PL_signals)
 
+#endif
+
+/* Hint: PL_ppaddr
+ * Calling an op via PL_ppaddr requires passing a context argument
+ * for threaded builds. Since the context argument is different for
+ * 5.005 perls, you can use aTHXR (supplied by ppport.h), which will
+ * automatically be defined as the correct argument.
+ */
+
+#if ((PERL_VERSION < 5) || ((PERL_VERSION == 5) && (PERL_SUBVERSION <= 4)))
+/* Replace: 1 */
+#  define PL_ppaddr                 ppaddr
+#  define PL_no_modify              no_modify
+/* Replace: 0 */
+#endif
+
+#if ((PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5)))
+/* Replace: 1 */
+#  define PL_DBsignal               DBsignal
+#  define PL_DBsingle               DBsingle
+#  define PL_DBsub                  DBsub
+#  define PL_DBtrace                DBtrace
+#  define PL_Sv                     Sv
+#  define PL_compiling              compiling
+#  define PL_copline                copline
+#  define PL_curcop                 curcop
+#  define PL_curstash               curstash
+#  define PL_debstash               debstash
+#  define PL_defgv                  defgv
+#  define PL_diehook                diehook
+#  define PL_dirty                  dirty
+#  define PL_dowarn                 dowarn
+#  define PL_errgv                  errgv
+#  define PL_hexdigit               hexdigit
+#  define PL_hints                  hints
+#  define PL_laststatval            laststatval
+#  define PL_na                     na
+#  define PL_perl_destruct_level    perl_destruct_level
+#  define PL_perldb                 perldb
+#  define PL_rsfp_filters           rsfp_filters
+#  define PL_rsfp                   rsfp
+#  define PL_stack_base             stack_base
+#  define PL_stack_sp               stack_sp
+#  define PL_statcache              statcache
+#  define PL_stdingv                stdingv
+#  define PL_sv_arenaroot           sv_arenaroot
+#  define PL_sv_no                  sv_no
+#  define PL_sv_undef               sv_undef
+#  define PL_sv_yes                 sv_yes
+#  define PL_tainted                tainted
+#  define PL_tainting               tainting
+/* Replace: 0 */
 #endif
 #ifndef dTHR
 #  define dTHR                           dNOOP
@@ -3695,6 +3729,21 @@ extern U32 DPPP_(my_PL_signals);
 
 #ifndef aTHX_
 #  define aTHX_
+#endif
+
+#if ((PERL_VERSION < 6) || ((PERL_VERSION == 6) && (PERL_SUBVERSION < 0)))
+#  ifdef USE_THREADS
+#    define aTHXR  thr
+#    define aTHXR_ thr, 
+#  else
+#    define aTHXR
+#    define aTHXR_
+#  endif
+#  define dTHXR  dTHR
+#else
+#  define aTHXR  aTHX
+#  define aTHXR_ aTHX_
+#  define dTHXR  dTHX
 #endif
 #ifndef dTHXoa
 #  define dTHXoa(x)                      dTHXa(x)
