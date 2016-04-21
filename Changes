@@ -1,5 +1,17 @@
 Revision history for Perl extension threads.
 
+1.92 Tue Feb  4 23:35:31 2014
+	- Version bump for blead
+
+1.91 Tue Feb  4 21:37:39 2014
+	- Sync from blead
+
+1.89 Mon Sep 30 14:49:47 2013
+	- POD updates for alarm() sample code and the specifics of _handle()
+
+1.87 Tue May 28 15:11:30 2013
+	- Ignore signals to finished threads (threads bug #85140)
+
 1.86 Wed Dec 14 21:12:51 2011
 	- Fix for mingw-w64 build due to setjmp difference
 
