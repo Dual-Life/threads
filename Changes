@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.98 Thu Mar  5 05:27:34 2015
+	- Fix for missing PERL_UNUSED_RESULT
+
 1.97 Tue Mar  3 23:30:07 2015
 	- Sync from blead
 
