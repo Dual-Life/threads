@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.09';
+our $VERSION = '1.11';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -82,7 +82,8 @@ sub async (&;@)
 }
 
 # Thread object method for checking equality against another thread object
-sub equal {
+sub equal
+{
     return (($_[0]->tid == $_[1]->tid) || 0);   # || 0 to ensure compatibility
                                                 # with previous versions
 }
@@ -103,7 +104,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.09
+This document describes threads version 1.11
 
 =head1 SYNOPSIS
 
@@ -121,7 +122,7 @@ This document describes threads version 1.09
     my $thread3 = async { foreach (@files) { ... } };
     $thread3->join();
 
-    # Invoking thread in list context so it can return a list
+    # Invoke thread in list context so it can return a list
     my ($thr) = threads->create(sub { return (qw/a b c/); });
     my @results = $thr->join();
 
@@ -171,12 +172,11 @@ L<threads::shared>, you must C<use threads> before you C<use threads::shared>.
 
 =over
 
-=item $thread = threads->create(FUNCTION, ARGS)
+=item $thr = threads->create(FUNCTION, ARGS)
 
-This will create a new thread with the entry point function, and give
-it the I<ARGS> list as parameters.  It will return the corresponding threads
-object, or C<undef> if thread creation failed.  The C<-E<gt>new()> method is
-an alias for C<-E<gt>create()>.
+This will create a new thread that will begin execution with the specified
+entry point function, and give it the I<ARGS> list as parameters.  It will
+return the corresponding threads object, or C<undef> if thread creation failed.
 
 I<FUNCTION> may either be the name of a function, an anonymous subroutine, or
 a code ref.
@@ -187,63 +187,102 @@ a code ref.
         # or
     my $thr = threads->create(\&func, ...);
 
-=item $thread->join()
+The thread may be created in I<list> context, or I<scalar> context as follows:
 
-This will wait for the corresponding thread to join. When the thread
-finishes, C<-E<gt>join()> will return the return values of the entry point
-function. If the thread has been detached, an error will be thrown.
+    # Create thread in list context
+    my ($thr) = threads->create(...);
+
+    # Create thread in scalar context
+    my $thr = threads->create(...);
+
+This has consequences for the C<-E<gt>join()> method describe below.
+
+Although a thread may be created in I<void> context, to do so you must
+I<chain> either the C<-E<gt>join()> or C<-E<gt>detach()> method to the
+C<-E<gt>create()> call:
+
+    threads->create(...)->join();
+
+The C<-E<gt>new()> method is an alias for C<-E<gt>create()>.
+
+=item $thr->join()
+
+This will wait for the corresponding thread to complete its execution.  When
+the thread finishes, C<-E<gt>join()> will return the return value(s) of the
+entry point function.
 
 The context (void, scalar or list) of the thread creation is also the
 context for C<-E<gt>join()>.  This means that if you intend to return an array
-from a thread, you must use C<my ($thread) = threads->create(...)>, and that
-if you intend to return a scalar, you must use C<my $thread = ...>.
+from a thread, you must use C<my ($thr) = threads->create(...)>, and that
+if you intend to return a scalar, you must use C<my $thr = ...>:
+
+    # Create thread in list context
+    my ($thr1) = threads->create(sub {
+                                    my @results = qw(a b c);
+                                    return (@results);
+                                 };
+    # Retrieve list results from thread
+    my @res1 = $thr1->join();
+
+    # Create thread in scalar context
+    my $thr2 = threads->create(sub {
+                                    my $result = 42;
+                                    return ($result);
+                                 };
+    # Retrieve scalar result from thread
+    my $res2 = $thr2->join();
 
 If the program exits without all other threads having been either joined or
 detached, then a warning will be issued. (A program exits either because one
-of its threads explicitly calls exit(), or in the case of the main thread,
-reaches the end of the main program file.)
+of its threads explicitly calls L<exit()|perlfunc/"exit EXPR">, or in the case
+of the main thread, reaches the end of the main program file.)
 
-=item $thread->detach()
+=item $thr->detach()
 
 Makes the thread unjoinable, and causes any eventual return value to be
 discarded.
 
+Calling C<-E<gt>join()> on a detached thread will cause an error to be thrown.
+
+=item threads->detach()
+
+Class method that allows a thread to detach itself.
+
 =item threads->self()
 
-This will return the threads object for the current thread.
+Class method that allows a thread to obtain its own I<threads> object.
 
-=item $thread->tid()
+=item $thr->tid()
 
-This will return the ID of the thread.  Thread IDs are integers, with
-the main thread in a program being 0.  Currently, Perl assigns a unique
-TID to every thread ever created in your program, assigning the first
-thread to be created a TID of 1, and increasing the TID by 1 for each
-new thread that's created.
+Returns the ID of the thread.  Thread IDs are unique integers with the main
+thread in a program being 0, and incrementing by 1 for every thread created.
 
-N.B., the class method C<< threads->tid() >> is a quick way to get the
-current thread id if you don't have your thread object handy.
+=item threads->tid()
+
+Class method that allows a thread to obtain its own ID.
 
 =item threads->object($tid)
 
-This will return the thread object for the thread associated with the
-specified C<$tid>.  Returns undef if there is no thread associated with the
-TID or no TID is specified or the specified TID is undef.
+This will return the I<threads> object for the I<active> thread associated
+with the specified thread ID.  Returns C<undef> if there is no thread
+associated with the TID, if the thread is joined or detached, if no TID is
+specified or if the specified TID is undef.
 
-=item threads->yield();
+=item threads->yield()
 
 This is a suggestion to the OS to let this thread yield CPU time to other
 threads.  What actually happens is highly dependent upon the underlying
 thread implementation.
 
-You may do C<use threads qw(yield)>, and then use just a bare C<yield> in your
+You may do C<use threads qw(yield)>, and then just use C<yield()> in your
 code.
 
-=item threads->list();
+=item threads->list()
 
-In a list context, this returns a list of all non-joined, non-detached
-threads.  In a scalar context, returns a count of the same.
+In a list context, returns a list of all non-joined, non-detached I<threads>
+objects.  In a scalar context, returns a count of the same.
 
-=item $thr1->equal($thr2);
+=item $thr1->equal($thr2)
 
 Tests if two threads objects are the same thread or not.  This is overloaded
 to the more natural form:
@@ -257,11 +296,11 @@ to the more natural form:
 =item async BLOCK;
 
 C<async> creates a thread to execute the block immediately following
-it.  This block is treated as an anonymous sub, and so must have a
-semi-colon after the closing brace. Like C<< threads->create >>, C<async>
-returns a thread object.
+it.  This block is treated as an anonymous subroutine, and so must have a
+semi-colon after the closing brace.  Like C<threads->create()>, C<async>
+returns a I<threads> object.
 
-=item $thread->_handle()
+=item $thr->_handle()
 
 This I<private> method returns the memory location of the internal thread
 structure associated with a threads object.  For Win32, this is the handle
@@ -272,6 +311,10 @@ This method is of no use for general Perl threads programming.  Its intent is
 to provide other (XS-based) thread modules with the capability to access, and
 possibly manipulate, the underlying thread structure associated with a Perl
 thread.
+
+=item threads->_handle()
+
+Class method that allows a thread to obtain its own I<handle>.
 
 =back
 
@@ -293,15 +336,15 @@ memory.
 
 =over
 
-=item $size = threads->get_stack_size();
+=item threads->get_stack_size();
 
-Gets the current default per-thread stack size.  The default is zero, which
-means the system default stack size currently in use.
+Returns the current default per-thread stack size.  The default is zero, which
+means the system default stack size is currently in use.
 
 =item $size = $thr->get_stack_size();
 
-Gets the stack size for a particular thread.  A return value of zero
-indicates the system default stack size was used.
+Returns the stack size for a particular thread.  A return value of zero
+indicates the system default stack size was used for the thread.
 
 =item $old_size = threads->set_stack_size($new_size);
 
@@ -325,7 +368,7 @@ through the use of the environment variable C<PERL5_ITHREADS_STACK_SIZE>:
     export PERL5_ITHREADS_STACK_SIZE
     perl -e'use threads; print(threads->get_stack_size(), "\n")'
 
-This value overrides any C<stack_size> parameter give to C<use threads>.  Its
+This value overrides any C<stack_size> parameter given to C<use threads>.  Its
 primary purpose is to permit setting the per-thread stack size for legacy
 threaded applications.
 
@@ -348,10 +391,10 @@ existing thread (C<$thr1>).  This is shorthand for the following:
 
 =over 4
 
-=item A thread exited while %d other threads were still running
+=item A thread exited while # other threads were still running
 
 A thread (not necessarily the main thread) exited while there were still other
-threads running.  Usually it's a good idea to first collect the return values
+threads running.  Usually, it's a good idea to first collect the return values
 of the created threads by joining them, and only then exit from the main
 thread.
 
@@ -388,12 +431,6 @@ incompatible.)
 
 On some platforms, it might not be possible to destroy I<parent> threads while
 there are still existing I<child> threads.
-
-=item Returning objects
-
-When you return an object, the entire stash that the object is blessed into is
-returned as well.  This will lead to a large memory usage.  The ideal
-situation would be to detect the original stash if it still exists.
 
 =item Creating threads inside BEGIN blocks
 
@@ -434,7 +471,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.09/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.11/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

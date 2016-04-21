@@ -1,5 +1,13 @@
 Revision history for Perl extension threads.
 
+1.11 Fri Mar 17 13:24:35 EST 2006
+	- Fix for freeing thread's Perl interpreter
+	- Removed BUGS POD item regarding returning objects from threads
+	- Enabled closure return test in t/problems.t
+	- Handle deprecation of :unique in tests
+	- XS code cleanup
+	- Better POD coverage
+
 1.09 Mon Mar 13 14:14:37 EST 2006
 	- Initial release to CPAN
 	- 64-bit TIDs

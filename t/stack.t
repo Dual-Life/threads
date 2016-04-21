@@ -36,7 +36,7 @@ BEGIN {
     print("1..18\n");   ### Number of tests that will be run ###
 };
 
-use threads ('stack_size' => 1_000_000);
+use threads 1.09 ('stack_size' => 1_000_000);
 ok(1, 1, 'Loaded');
 
 ### Start of Testing ###

@@ -20,9 +20,9 @@ use ExtUtils::testlib;
 BEGIN {
     $| = 1;
     if ($] == 5.008) {
-        print("1..14\n");   ### Number of tests that will be run ###
-    } else {
         print("1..15\n");   ### Number of tests that will be run ###
+    } else {
+        print("1..16\n");   ### Number of tests that will be run ###
     }
 };
 
@@ -32,11 +32,14 @@ print("ok 1 - Loaded\n");
 
 ### Start of Testing ###
 
+no warnings 'deprecated';       # Suppress warnings related to :unique
+
 use Hash::Util 'lock_keys';
 
 my $test :shared = 2;
 
-sub is($$$) {
+sub is($$$)
+{
     my ($got, $want, $desc) = @_;
     if ($got ne $want) {
         print("# EXPECTED: $want\n");
@@ -52,7 +55,8 @@ sub is($$$) {
     # This tests for too much destruction which was caused by cloning stashes
     # on join which led to double the dataspace
 
-    sub Foo::DESTROY {
+    sub Foo::DESTROY
+    {
         my $self = shift;
         my ($package, $file, $line) = caller;
         if (defined($self->{tid})) {
@@ -73,8 +77,8 @@ sub is($$$) {
 
 # This tests whether we can call Config::myconfig after threads have been
 # started (interpreter cloned).  5.8.1 and 5.8.2 contained a bug that would
-# disallow that too be done, because an attempt was made to change a variable
-# with the : unique attribute.
+# disallow that to be done because an attempt was made to change a variable
+# with the :unique attribute.
 
 if ($] == 5.008 || $] >= 5.008003) {
     threads->new( sub {1} )->join;
@@ -84,6 +88,7 @@ if ($] == 5.008 || $] >= 5.008003) {
     print "ok $test # Skip Are we able to call Config::myconfig after clone\n";
 }
 $test++;
+
 
 # bugid 24383 - :unique hashes weren't being made readonly on interpreter
 # clone; check that they are.
@@ -129,32 +134,30 @@ for my $decl ('my $x : unique', 'sub foo : unique') {
 # the anon sub's pad wasn't for a lexical, then a core dump could occur.
 # Otherwise, there might be leaked scalars.
 
-# XXX DAPM 9-Jan-04 - backed this out for now - returning a closure from a
-# thread seems to crash win32
+sub f
+{
+    my $x = "foo";
+    sub { $x."bar" };
+}
+my $string = threads->new(\&f)->join->();
+print $string eq 'foobar' ?  '' : 'not ', "ok $test - returning closure\n";
+$test++;
 
-# sub f {
-#     my $x = "foo";
-#     sub { $x."bar" };
-# }
-#
-# my $string = threads->new(\&f)->join->();
-# print $string eq 'foobar' ?  '' : 'not ', "ok $test - returning closure\n";
-# $test++;
 
 # Nothing is checking that total keys gets cloned correctly.
 
 my %h = (1,2,3,4);
-is (keys %h, 2, "keys correct in parent");
+is(keys(%h), 2, "keys correct in parent");
 
-my $child = threads->new(sub { return scalar keys %h })->join;
-is ($child, 2, "keys correct in child");
+my $child = threads->new(sub { return (scalar(keys(%h))); })->join;
+is($child, 2, "keys correct in child");
 
-lock_keys (%h);
-delete $h{1};
+lock_keys(%h);
+delete($h{1});
 
-is (keys %h, 1, "keys correct in parent with restricted hash");
+is(keys(%h), 1, "keys correct in parent with restricted hash");
 
-$child = threads->new(sub { return scalar keys %h })->join;
-is ($child, 1, "keys correct in child with restricted hash");
+$child = threads->new(sub { return (scalar(keys(%h))); })->join;
+is($child, 1, "keys correct in child with restricted hash");
 
 # EOF

@@ -33,7 +33,7 @@ sub ok {
 
 BEGIN {
     $| = 1;
-    print("1..26\n");   ### Number of tests that will be run ###
+    print("1..30\n");   ### Number of tests that will be run ###
 };
 
 use threads;
@@ -56,12 +56,12 @@ threads->create('test1', 'bar')->join();
 sub test2 {
     ok(4,'bar' eq $_[0]->[0]->{'foo'}, "Test that passing arguments as references work");
 }
-threads->create('test2',[{'foo' => 'bar'}])->join();
+threads->create(\&test2, [{'foo' => 'bar'}])->join();
 
 sub test3 {
     ok(5, shift() == 1, "Test a normal sub");
 }
-threads->create('test3', 1)->join();
+threads->create(\&test3, 1)->join();
 
 
 sub test4 {
@@ -147,7 +147,16 @@ ok(25, threads->object($thr2->tid())->tid() == 12, 'Object method');
 $thr1->join();
 $thr2->join();
 
+my $sub = sub { ok(26, shift() == 1, "Test code ref"); };
+threads->create($sub, 1)->join();
+
 my $thrx = threads->object(99);
-ok(26, ! defined($thrx), 'No object');
+ok(27, ! defined($thrx), 'No object');
+$thrx = threads->object();
+ok(28, ! defined($thrx), 'No object');
+$thrx = threads->object(undef);
+ok(29, ! defined($thrx), 'No object');
+$thrx = threads->object(0);
+ok(30, ! defined($thrx), 'No object');
 
 # EOF
