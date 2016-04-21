@@ -105,7 +105,7 @@ share($test_id);
 if ($^O eq 'linux') {
     # First modify $0 in a subthread.
     #print "# mainthread: \$0 = $0\n";
-    threads->new(sub{ #print "# subthread: \$0 = $0\n";
+    threads->create(sub{ #print "# subthread: \$0 = $0\n";
                         $0 = "foobar";
                         #print "# subthread: \$0 = $0\n"
                  })->join;
@@ -138,9 +138,9 @@ if ($^O eq 'linux') {
 }
 
 {
-    my $t = threads->new(sub {});
+    my $t = threads->create(sub {});
     $t->join;
-    my $x = threads->new(sub {});
+    my $x = threads->create(sub {});
     $x->join;
     eval { $t->join; };
     ok(++$test_id, ($@ =~ /Thread already joined/), "Double join works");
@@ -153,7 +153,7 @@ if ($^O eq 'linux') {
     # incite a lot of calls to newCONSTSUB.  See the p5p archives for
     # the thread "maint@20974 or before broke mp2 ithreads test".
     use IO;
-    $_->join for map threads->new(sub{ok(++$test_id, $_, "stress newCONSTSUB")}), 1..2;
+    $_->join for map threads->create(sub{ok(++$test_id, $_, "stress newCONSTSUB")}), 1..2;
 }
 
 # EOF

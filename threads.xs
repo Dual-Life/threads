@@ -52,7 +52,7 @@ typedef struct ithread_s {
     PerlInterpreter *free_interp;
     UV tid;                     /* Threads module's thread id */
     perl_mutex mutex;           /* Mutex for updating things in this struct */
-    UV count;                   /* How many SVs have a reference to us */
+    IV count;                   /* How many SVs have a reference to us */
     int state;                  /* Detached, joined, finished, etc. */
     int gimme;                  /* Context of create */
     SV *init_function;          /* Code to run */
@@ -63,7 +63,7 @@ typedef struct ithread_s {
 #else
     pthread_t thr;              /* OS's handle for the thread */
 #endif
-    UV stack_size;
+    IV stack_size;
 } ithread;
 
 /* Linked list of all threads */
@@ -73,11 +73,11 @@ static ithread *threads;
 static perl_mutex create_destruct_mutex;
 
 static UV tid_counter = 0;
-static UV active_threads = 0;
+static IV active_threads = 0;
 #ifdef THREAD_CREATE_NEEDS_STACK
-static UV default_stack_size = THREAD_CREATE_NEEDS_STACK;
+static IV default_stack_size = THREAD_CREATE_NEEDS_STACK;
 #else
-static UV default_stack_size = 0;
+static IV default_stack_size = 0;
 #endif
 static IV page_size = 0;
 
@@ -212,7 +212,7 @@ Perl_ithread_hook(pTHX)
     MUTEX_LOCK(&create_destruct_mutex);
     if ((aTHX == PL_curinterp) && (active_threads > 1)) {
         if (ckWARN_d(WARN_THREADS)) {
-            Perl_warn(aTHX_ "A thread exited while %" IVdf " threads were running", (IV)active_threads);
+            Perl_warn(aTHX_ "A thread exited while %" IVdf " threads were running", active_threads);
         }
         veto_cleanup = 1;
     }
@@ -303,8 +303,8 @@ SV_to_ithread(pTHX_ SV *sv)
 
 
 /* Provided default, minimum and rational stack sizes */
-static UV
-good_stack_size(pTHX_ ithread *thread, UV stack_size)
+static IV
+good_stack_size(pTHX_ ithread *thread, IV stack_size)
 {
     /* Use default stack size if no stack size specified */
     if (! stack_size)
@@ -314,7 +314,7 @@ good_stack_size(pTHX_ ithread *thread, UV stack_size)
     /* Can't use less than minimum */
     if (stack_size < PTHREAD_STACK_MIN) {
         if (ckWARN_d(WARN_THREADS)) {
-            Perl_warn(aTHX_ "Using minimum thread stack size of %" UVuf, (UV)PTHREAD_STACK_MIN);
+            Perl_warn(aTHX_ "Using minimum thread stack size of %" IVdf, (IV)PTHREAD_STACK_MIN);
         }
         return (PTHREAD_STACK_MIN);
     }
@@ -386,8 +386,8 @@ Perl_ithread_run(void * arg)
 
     {
         AV *params = (AV *)SvRV(thread->params);
-        IV len = av_len(params)+1;
-        int i;
+        int len = (int)av_len(params)+1;
+        int ii;
 
         dSP;
         ENTER;
@@ -395,19 +395,19 @@ Perl_ithread_run(void * arg)
 
         /* Put args on the stack */
         PUSHMARK(SP);
-        for (i=0; i < len; i++) {
+        for (ii=0; ii < len; ii++) {
             XPUSHs(av_shift(params));
         }
         PUTBACK;
 
         /* Run the specified function */
-        len = call_sv(thread->init_function, thread->gimme|G_EVAL);
+        len = (int)call_sv(thread->init_function, thread->gimme|G_EVAL);
 
         /* Remove args from stack and put back in params array */
         SPAGAIN;
-        for (i=len-1; i >= 0; i--) {
+        for (ii=len-1; ii >= 0; ii--) {
           SV *sv = POPs;
-          av_store(params, i, SvREFCNT_inc(sv));
+          av_store(params, ii, SvREFCNT_inc(sv));
         }
 
         /* Check for failure */
@@ -451,7 +451,7 @@ Perl_ithread_create(
         pTHX_ SV *obj,
         char     *classname,
         SV       *init_function,
-        UV        stack_size,
+        IV        stack_size,
         SV       *params)
 {
     ithread     *thread;
@@ -565,7 +565,7 @@ Perl_ithread_create(
     /* Create/start the thread */
 #ifdef WIN32
     thread->handle = CreateThread(NULL,
-                                  thread->stack_size,
+                                  (DWORD)thread->stack_size,
                                   Perl_ithread_run,
                                   (LPVOID)thread,
                                   STACK_SIZE_PARAM_IS_A_RESERVATION,
@@ -588,7 +588,7 @@ Perl_ithread_create(
 #  ifdef _POSIX_THREAD_ATTR_STACKSIZE
         /* Set thread's stack size */
         if (thread->stack_size > 0) {
-            rc_stack_size = pthread_attr_setstacksize(&attr, thread->stack_size);
+            rc_stack_size = pthread_attr_setstacksize(&attr, (size_t)thread->stack_size);
         }
 #  endif
 
@@ -616,7 +616,7 @@ Perl_ithread_create(
             size_t stacksize;
             if (! pthread_attr_getstacksize(&attr, &stacksize)) {
                 if (stacksize) {
-                    thread->stack_size = (UV)stacksize;
+                    thread->stack_size = (IV)stacksize;
                 }
             }
         }
@@ -636,7 +636,7 @@ Perl_ithread_create(
 #ifndef WIN32
         if (ckWARN_d(WARN_THREADS)) {
             if (rc_stack_size)
-                Perl_warn(aTHX_ "Thread creation failed: pthread_attr_setstacksize(%" UVuf ") returned %d", thread->stack_size, rc_stack_size);
+                Perl_warn(aTHX_ "Thread creation failed: pthread_attr_setstacksize(%" IVdf ") returned %d", thread->stack_size, rc_stack_size);
             else if (rc_thread_create && ckWARN_d(WARN_THREADS))
                 Perl_warn(aTHX_ "Thread creation failed: pthread_create returned %d", rc_thread_create);
         }
@@ -754,7 +754,7 @@ ithread_create(...)
         SV *function_to_call;
         AV *params;
         HV *specs;
-        UV stack_size;
+        IV stack_size;
         int idx;
         int ii;
     CODE:
@@ -786,11 +786,11 @@ ithread_create(...)
         if (specs) {
             /* stack_size */
             if (hv_exists(specs, "stack", 5)) {
-                stack_size = SvUV(*hv_fetch(specs, "stack", 5, 0));
+                stack_size = SvIV(*hv_fetch(specs, "stack", 5, 0));
             } else if (hv_exists(specs, "stacksize", 9)) {
-                stack_size = SvUV(*hv_fetch(specs, "stacksize", 9, 0));
+                stack_size = SvIV(*hv_fetch(specs, "stacksize", 9, 0));
             } else if (hv_exists(specs, "stack_size", 10)) {
-                stack_size = SvUV(*hv_fetch(specs, "stack_size", 10, 0));
+                stack_size = SvIV(*hv_fetch(specs, "stack_size", 10, 0));
             }
         }
 
@@ -831,7 +831,7 @@ ithread_tid(...)
         ithread *thread;
     CODE:
         thread = SV_to_ithread(aTHX_ ST(0));
-        ST(0) = sv_2mortal(newSVuv(thread->tid));
+        XST_mUV(0, thread->tid);
         /* XSRETURN(1); - implied */
 
 
@@ -842,9 +842,9 @@ ithread__handle(...);
     CODE:
         thread = SV_to_ithread(aTHX_ ST(0));
 #ifdef WIN32
-        ST(0) = sv_2mortal(newSVuv(PTR2UV(thread->handle)));
+        XST_mUV(0, PTR2UV(thread->handle));
 #else
-        ST(0) = sv_2mortal(newSVuv(PTR2UV(thread->thr)));
+        XST_mUV(0, PTR2UV(thread->thr));
 #endif
         /* XSRETURN(1); - implied */
 
@@ -853,8 +853,8 @@ void
 ithread_join(...)
     PREINIT:
         AV *params;
-        IV len;
-        int i;
+        int len;
+        int ii;
     PPCODE:
         /* Object method only */
         if (! sv_isobject(ST(0)))
@@ -865,13 +865,14 @@ ithread_join(...)
         if (! params) {
             XSRETURN_UNDEF;
         }
-        len = AvFILL(params);
+
         /* Put return values on stack */
-        for (i=0; i <= len; i++) {
-            SV* tmp = av_shift(params);
-            XPUSHs(tmp);
-            sv_2mortal(tmp);
+        len = (int)AvFILL(params);
+        for (ii=0; ii <= len; ii++) {
+            SV* param = av_shift(params);
+            XPUSHs(sv_2mortal(param));
         }
+
         /* Free return value array */
         SvREFCNT_dec(params);
 
@@ -926,8 +927,7 @@ ithread_list(...)
         MUTEX_UNLOCK(&create_destruct_mutex);
         /* If scalar context, send back count */
         if (! list_context) {
-            ST(0) = sv_2mortal(newSViv(count));
-            XSRETURN(1);
+            XSRETURN_IV(count);
         }
 
 
@@ -948,7 +948,7 @@ ithread_object(...)
             XSRETURN_UNDEF;
         }
 
-        tid = (UV)SvUV(ST(1));
+        tid = SvUV(ST(1));
 
         /* Walk through threads list */
         MUTEX_LOCK(&create_destruct_mutex);
@@ -977,7 +977,7 @@ ithread_object(...)
 void
 ithread_get_stack_size(...)
     PREINIT:
-        UV stack_size;
+        IV stack_size;
     CODE:
         if (sv_isobject(ST(0))) {
             /* $thr->get_stack_size() */
@@ -987,14 +987,14 @@ ithread_get_stack_size(...)
             /* threads->get_stack_size() */
             stack_size = default_stack_size;
         }
-        ST(0) = sv_2mortal(newSVuv(stack_size));
+        XST_mIV(0, stack_size);
         /* XSRETURN(1); - implied */
 
 
 void
 ithread_set_stack_size(...)
     PREINIT:
-        UV old_size;
+        IV old_size;
     CODE:
         if (items != 2)
             Perl_croak(aTHX_ "Usage: threads->set_stack_size($size)");
@@ -1002,8 +1002,8 @@ ithread_set_stack_size(...)
             Perl_croak(aTHX_ "Cannot change stack size of an existing thread");
 
         old_size = default_stack_size;
-        default_stack_size = good_stack_size(aTHX_ Perl_ithread_get(aTHX), SvUV(ST(1)));
-        ST(0) = sv_2mortal(newSVuv(old_size));
+        default_stack_size = good_stack_size(aTHX_ Perl_ithread_get(aTHX), SvIV(ST(1)));
+        XST_mIV(0, old_size);
         /* XSRETURN(1); - implied */
 
 
@@ -1016,12 +1016,19 @@ ithread_yield(...)
 void
 ithread_equal(...)
     CODE:
+        /* Compares TIDs to determine thread equality.
+         * Return 0 on false for backward compatibility.
+         */
         if (sv_isobject(ST(0)) && sv_isobject(ST(1))) {
             ithread *thr1 = INT2PTR(ithread *, SvIV(SvRV(ST(0))));
             ithread *thr2 = INT2PTR(ithread *, SvIV(SvRV(ST(1))));
-            ST(0) = (thr1->tid == thr2->tid) ? &PL_sv_yes : &PL_sv_no;
+            if (thr1->tid == thr2->tid) {
+                XST_mYES(0);
+            } else {
+                XST_mIV(0, 0);
+            }
         } else {
-            ST(0) = &PL_sv_no;
+            XST_mIV(0, 0);
         }
         /* XSRETURN(1); - implied */
 
