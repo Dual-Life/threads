@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.49 Fri Nov  3 08:33:28 EST 2006
+	- Fix a warning message
+
 1.48 Thu Nov  2 12:33:22 EST 2006
 	- Fix for segfault during thread destruction
 
