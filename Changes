@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.99 Fri Mar  6 14:21:52 2015
+	- Fix for missing PERL_UNUSED_RESULT (for real)
+
 1.98 Thu Mar  5 05:27:34 2015
 	- Fix for missing PERL_UNUSED_RESULT
 
