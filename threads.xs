@@ -4,8 +4,10 @@
 #include "XSUB.h"
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_nolen
-#include "ppport.h"
-#include "threads.h"
+#ifndef PERL_CORE
+#  include "ppport.h"
+#  include "threads.h"
+#endif
 
 #ifdef USE_ITHREADS
 
@@ -65,18 +67,19 @@ typedef struct ithread_s {
 } ithread;
 
 /* Linked list of all threads */
-ithread *threads;
+static ithread *threads;
 
 /* Protects the creation and destruction of threads*/
 static perl_mutex create_destruct_mutex;
 
-UV tid_counter = 0;
-UV active_threads = 0;
+static UV tid_counter = 0;
+static UV active_threads = 0;
 #ifdef THREAD_CREATE_NEEDS_STACK
-UV default_stack_size = THREAD_CREATE_NEEDS_STACK;
+static UV default_stack_size = THREAD_CREATE_NEEDS_STACK;
 #else
-UV default_stack_size = 0;
+static UV default_stack_size = 0;
 #endif
+static IV page_size = 0;
 
 
 #define MY_CXT_KEY "threads::_guts" XS_VERSION
@@ -172,7 +175,7 @@ Perl_ithread_destruct(pTHX_ ithread *thread)
         perl_free(interp);
 #ifdef WIN32
     if (handle)
-        CloseHandle(thread);
+        CloseHandle(handle);
 #endif
 }
 
@@ -296,6 +299,68 @@ SV_to_ithread(pTHX_ SV *sv)
       return (INT2PTR(ithread *, SvIV(SvRV(sv))));
     }
     return (Perl_ithread_get(aTHX));
+}
+
+
+/* Provided default, minimum and rational stack sizes */
+static UV
+good_stack_size(pTHX_ ithread *thread, UV stack_size)
+{
+    /* Use default stack size if no stack size specified */
+    if (! stack_size)
+        return (default_stack_size);
+
+#ifdef PTHREAD_STACK_MIN
+    /* Can't use less than minimum */
+    if (stack_size < PTHREAD_STACK_MIN) {
+        if (ckWARN_d(WARN_THREADS)) {
+            Perl_warn(aTHX_ "Using minimum thread stack size of %" UVdf, (UV)PTHREAD_STACK_MIN);
+        }
+        return (PTHREAD_STACK_MIN);
+    }
+#endif
+
+    /* Round up to page size boundary */
+    if (page_size <= 0) {
+#ifdef PL_mmap_page_size
+        page_size = PL_mmap_page_size;
+#else
+#  ifdef HAS_MMAP
+#    if defined(HAS_SYSCONF) && (defined(_SC_PAGESIZE) || defined(_SC_MMAP_PAGE_SIZE))
+        SETERRNO(0, SS_NORMAL);
+#      ifdef _SC_PAGESIZE
+        page_size = sysconf(_SC_PAGESIZE);
+#      else
+        page_size = sysconf(_SC_MMAP_PAGE_SIZE);
+#      endif
+        if ((long)page_size < 0) {
+            if (errno) {
+                SV * const error = get_sv("@", FALSE);
+                (void)SvUPGRADE(error, SVt_PV);
+                Perl_croak(aTHX_ "PANIC: sysconf: %s", SvPV_nolen_const(error));
+            } else {
+                Perl_croak(aTHX_ "PANIC: sysconf: pagesize unknown");
+            }
+        }
+#    else
+#      ifdef HAS_GETPAGESIZE
+        page_size = getpagesize();
+#      else
+#        if defined(I_SYS_PARAM) && defined(PAGESIZE)
+        page_size = PAGESIZE;
+#        endif
+#      endif
+        if (page_size <= 0)
+            Perl_croak(aTHX_ "PANIC: bad pagesize %" IVdf, (IV)page_size);
+#    endif
+#  else
+        page_size = 8192;   /* A conservative default */
+#  endif
+#endif
+    }
+    stack_size = ((stack_size + (page_size - 1)) / page_size) * page_size;
+
+    return (stack_size);
 }
 
 
@@ -423,7 +488,7 @@ Perl_ithread_create(
 
     MUTEX_INIT(&thread->mutex);
     thread->tid = tid_counter++;
-    thread->stack_size = (stack_size) ? stack_size : default_stack_size;
+    thread->stack_size = good_stack_size(aTHX_ current_thread, stack_size);
     thread->gimme = GIMME_V;
 
     /* "Clone" our interpreter into the thread's interpreter.
@@ -520,12 +585,14 @@ Perl_ithread_create(
         PTHREAD_ATTR_SETDETACHSTATE(&attr, attr_joinable);
 #  endif
 
+#  ifdef _POSIX_THREAD_ATTR_STACKSIZE
         /* Set thread's stack size */
         if ((thread->stack_size > 0) &&
             pthread_attr_setstacksize(&attr, thread->stack_size))
         {
             panic = "PANIC: pthread_attr_setstacksize failed";
         }
+#  endif
 
         /* Create the thread */
 #  ifdef OLD_PTHREADS_API
@@ -541,6 +608,17 @@ Perl_ithread_create(
                                                &attr,
                                                Perl_ithread_run,
                                                (void *)thread);
+#  endif
+
+#  ifdef _POSIX_THREAD_ATTR_STACKSIZE
+        /* Try to get thread's actual stack size */
+        {
+            size_t stacksize;
+            if (! pthread_attr_getstacksize(&attr, &stacksize)) {
+                if (stacksize)
+                    thread->stack_size = (UV)stacksize;
+            }
+        }
 #  endif
     }
 #endif
@@ -919,7 +997,7 @@ ithread_set_stack_size(...)
             Perl_croak(aTHX_ "Cannot change stack size of an existing thread");
 
         old_size = default_stack_size;
-        default_stack_size = SvUV(ST(1));
+        default_stack_size = good_stack_size(aTHX_ Perl_ithread_get(aTHX), SvUV(ST(1)));
         ST(0) = sv_2mortal(newSVuv(old_size));
         /* XSRETURN(1); - implied */
 

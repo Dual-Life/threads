@@ -1,5 +1,9 @@
 Revision history for Perl extension threads.
 
+1.13 Mon Mar 20 15:09:42 EST 2006
+	- Use PTHREAD_STACK_MIN if available
+	- Round stack sizes to multiple of page size (usually 4096 or 8192)
+
 1.12 Sun Mar 19 17:34:49 EST 2006
 	- Implemented $thr1->equal($thr2) in XS
 	- Use $ENV{PERL_CORE} in tests

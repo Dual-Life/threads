@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -98,11 +98,11 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.12
+This document describes threads version 1.13
 
 =head1 SYNOPSIS
 
-    use threads ('yield', 'stack_size' => 1_000_000);
+    use threads ('yield', 'stack_size' => 256*4096);
 
     sub start_thread {
         my @args = @_;
@@ -140,7 +140,7 @@ This document describes threads version 1.12
     }
 
     $stack_size = threads->get_stack_size();
-    $old_size = threads->set_stack_size(2_000_000);
+    $old_size = threads->set_stack_size(512*4096);
 
 =head1 DESCRIPTION
 
@@ -343,6 +343,14 @@ indicates the system default stack size was used for the thread.
 =item $old_size = threads->set_stack_size($new_size);
 
 Sets a new default per-thread stack size, and returns the previous setting.
+
+Some platforms have a minimum thread stack size.  Trying to set the stack size
+below this value will result in a warning, and the minimum stack size will be
+used.
+
+If needed, C<$new_size> will be rounded up to the next multiple of the memory
+page size (usually 4096 or 8192).
+
 Threads created after the stack size is set will then either call
 C<pthread_attr_setstacksize()> I<(for pthreads platforms)>, or supply the
 stack size to C<CreateThread()> I<(for Win32 Perl)>.
@@ -358,7 +366,7 @@ This sets the default per-thread stack size at the start of the application.
 The default per-thread stack size may be set at the start of the application
 through the use of the environment variable C<PERL5_ITHREADS_STACK_SIZE>:
 
-    PERL5_ITHREADS_STACK_SIZE=1000000
+    PERL5_ITHREADS_STACK_SIZE=1048576
     export PERL5_ITHREADS_STACK_SIZE
     perl -e'use threads; print(threads->get_stack_size(), "\n")'
 
@@ -391,6 +399,12 @@ A thread (not necessarily the main thread) exited while there were still other
 threads running.  Usually, it's a good idea to first collect the return values
 of the created threads by joining them, and only then exit from the main
 thread.
+
+=item Using minimum thread stack size of #
+
+Some platforms have a minimum thread stack size.  Trying to set the stack size
+below this value will result in the above warning, and the stack size will be
+set to the minimum.
 
 =back
 
@@ -465,7 +479,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.12/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.13/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

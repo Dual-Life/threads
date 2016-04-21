@@ -34,72 +34,72 @@ BEGIN {
     print("1..18\n");   ### Number of tests that will be run ###
 };
 
-use threads 1.09 ('stack_size' => 1_000_000);
+use threads 1.09 ('stack_size' => 256*4096);
 ok(1, 1, 'Loaded');
 
 ### Start of Testing ###
 
-ok(2, threads->get_stack_size() == 1_000_000,
+ok(2, threads->get_stack_size() == 256*4096,
         'Stack size set in import');
-ok(3, threads->set_stack_size(2_000_000) == 1_000_000,
+ok(3, threads->set_stack_size(512*4096) == 256*4096,
         'Set returns previous value');
-ok(4, threads->get_stack_size() == 2_000_000,
+ok(4, threads->get_stack_size() == 512*4096,
         'Get stack size');
 
 threads->create(
     sub {
-        ok(5, threads->get_stack_size() == 2_000_000,
+        ok(5, threads->get_stack_size() == 512*4096,
                 'Get stack size in thread');
-        ok(6, threads->self()->get_stack_size() == 2_000_000,
+        ok(6, threads->self()->get_stack_size() == 512*4096,
                 'Thread gets own stack size');
-        ok(7, threads->set_stack_size(1_000_000) == 2_000_000,
+        ok(7, threads->set_stack_size(256*4096) == 512*4096,
                 'Thread changes stack size');
-        ok(8, threads->get_stack_size() == 1_000_000,
+        ok(8, threads->get_stack_size() == 256*4096,
                 'Get stack size in thread');
-        ok(9, threads->self()->get_stack_size() == 2_000_000,
+        ok(9, threads->self()->get_stack_size() == 512*4096,
                 'Thread stack size unchanged');
     }
 )->join();
 
-ok(10, threads->get_stack_size() == 1_000_000,
+ok(10, threads->get_stack_size() == 256*4096,
         'Default thread sized changed in thread');
 
 threads->create(
-    { 'stack' => 2_000_000 },
+    { 'stack' => 512*4096 },
     sub {
-        ok(11, threads->get_stack_size() == 1_000_000,
+        ok(11, threads->get_stack_size() == 256*4096,
                 'Get stack size in thread');
-        ok(12, threads->self()->get_stack_size() == 2_000_000,
+        ok(12, threads->self()->get_stack_size() == 512*4096,
                 'Thread gets own stack size');
     }
 )->join();
 
-my $thr = threads->create( { 'stack' => 2_000_000 }, sub { } );
+my $thr = threads->create( { 'stack' => 512*4096 }, sub { } );
 
 $thr->create(
     sub {
-        ok(13, threads->get_stack_size() == 1_000_000,
+        ok(13, threads->get_stack_size() == 256*4096,
                 'Get stack size in thread');
-        ok(14, threads->self()->get_stack_size() == 2_000_000,
+        ok(14, threads->self()->get_stack_size() == 512*4096,
                 'Thread gets own stack size');
     }
 )->join();
 
 $thr->create(
-    { 'stack' => 3_000_000 },
+    { 'stack' => 768*4096 },
     sub {
-        ok(15, threads->get_stack_size() == 1_000_000,
+        ok(15, threads->get_stack_size() == 256*4096,
                 'Get stack size in thread');
-        ok(16, threads->self()->get_stack_size() == 3_000_000,
+        ok(16, threads->self()->get_stack_size() == 768*4096,
                 'Thread gets own stack size');
-        ok(17, threads->set_stack_size(2_000_000) == 1_000_000,
+        ok(17, threads->set_stack_size(512*4096) == 256*4096,
                 'Thread changes stack size');
     }
 )->join();
 
 $thr->join();
 
-ok(18, threads->get_stack_size() == 2_000_000,
+ok(18, threads->get_stack_size() == 512*4096,
         'Default thread sized changed in thread');
 
 # EOF
