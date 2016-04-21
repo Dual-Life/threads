@@ -5,6 +5,8 @@ require 5.008;
 use strict;
 use warnings;
 
+my $PERL_CORE = grep { $_ eq 'PERL_CORE=1' } @ARGV;
+
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -24,6 +26,7 @@ WriteMakefile(
         ('PL_FILES' => { })            : ()),
     ((ExtUtils::MakeMaker->VERSION() gt '6.30') ?
         ('LICENSE'  => 'perl')         : ()),
+    'CCFLAGS'           => ($PERL_CORE) ? '' : '-DHAVE_PPPORT_H',
 );
 
 

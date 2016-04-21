@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.14';
+our $VERSION = '1.15';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -98,7 +98,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.14
+This document describes threads version 1.15
 
 =head1 SYNOPSIS
 
@@ -452,6 +452,11 @@ the same way as threads.)
 If your Perl has been built with PERL_OLD_SIGNALS (one has to explicitly add
 that symbol to I<ccflags>, see C<perl -V>), signal handling is not threadsafe.
 
+=item Returning closures from threads
+
+Returning a closure from a thread does not work, usually crashing Perl in the
+process.
+
 =item Perl Bugs and the CPAN Version of L<threads>
 
 Support for threads extents beyond the code in this module (i.e.,
@@ -479,7 +484,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.14/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.15/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

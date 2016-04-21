@@ -2,7 +2,7 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#ifndef PERL_CORE
+#ifdef HAVE_PPPORT_H
 #  define NEED_newRV_noinc
 #  define NEED_sv_2pv_nolen
 #  include "ppport.h"
@@ -337,7 +337,7 @@ good_stack_size(pTHX_ ithread *thread, UV stack_size)
             if (errno) {
                 SV * const error = get_sv("@", FALSE);
                 (void)SvUPGRADE(error, SVt_PV);
-                Perl_croak(aTHX_ "PANIC: sysconf: %s", SvPV_nolen_const(error));
+                Perl_croak(aTHX_ "PANIC: sysconf: %s", SvPV_nolen(error));
             } else {
                 Perl_croak(aTHX_ "PANIC: sysconf: pagesize unknown");
             }
