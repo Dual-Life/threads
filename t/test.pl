@@ -300,7 +300,7 @@ sub display {
                     $y = $y . $backslash_escape{$c};
                 } else {
                     my $z = chr $c; # Maybe we can get away with a literal...
-                    if ($z =~ /[[:^print:]]/a) {
+                    if ($z =~ /[[:^print:]]/) {
 
                         # Use octal for characters with small ordinals that
                         # are traditionally expressed as octal: the controls

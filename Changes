@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+2.01 Sun Mar  8 02:32:03 2015
+	- Make t/test.pl compatible with Perls < 5.14
+
 1.99 Fri Mar  6 14:21:52 2015
 	- Fix for missing PERL_UNUSED_RESULT (for real)
 
