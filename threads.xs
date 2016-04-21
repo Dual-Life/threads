@@ -52,7 +52,7 @@ typedef perl_os_thread pthread_t;
 
 /* Values for 'state' member */
 #define PERL_ITHR_DETACHED           1 /* Thread has been detached */
-#define PERL_ITHR_JOINED             2 /* Thread has been joined */
+#define PERL_ITHR_JOINED             2 /* Thread is being / has been joined */
 #define PERL_ITHR_FINISHED           4 /* Thread has finished execution */
 #define PERL_ITHR_THREAD_EXIT_ONLY   8 /* exit() only exits current thread */
 #define PERL_ITHR_NONVIABLE         16 /* Thread creation failed */

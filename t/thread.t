@@ -161,7 +161,7 @@ package main;
 
 # bugid #24165
 
-run_perl(prog => 'use threads 1.76;' .
+run_perl(prog => 'use threads 1.77;' .
                  'sub a{threads->create(shift)} $t = a sub{};' .
                  '$t->tid; $t->join; $t->tid',
          nolib => ($ENV{PERL_CORE}) ? 0 : 1,
@@ -316,7 +316,7 @@ SKIP: {
 
     {
         lock(@tids);
-        cond_wait(@tids);
+        cond_wait(@tids) while (! @tids);
     }
 
     ok(threads->object($_), 'Got threads object') foreach (@tids);
