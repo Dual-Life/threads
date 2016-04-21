@@ -2,9 +2,9 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#define NEED_newRV_noinc
-#define NEED_sv_2pv_nolen
 #ifndef PERL_CORE
+#  define NEED_newRV_noinc
+#  define NEED_sv_2pv_nolen
 #  include "ppport.h"
 #  include "threads.h"
 #endif
@@ -314,7 +314,7 @@ good_stack_size(pTHX_ ithread *thread, UV stack_size)
     /* Can't use less than minimum */
     if (stack_size < PTHREAD_STACK_MIN) {
         if (ckWARN_d(WARN_THREADS)) {
-            Perl_warn(aTHX_ "Using minimum thread stack size of %" UVdf, (UV)PTHREAD_STACK_MIN);
+            Perl_warn(aTHX_ "Using minimum thread stack size of %" UVuf, (UV)PTHREAD_STACK_MIN);
         }
         return (PTHREAD_STACK_MIN);
     }

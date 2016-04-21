@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -98,7 +98,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.13
+This document describes threads version 1.14
 
 =head1 SYNOPSIS
 
@@ -479,7 +479,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.13/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.14/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

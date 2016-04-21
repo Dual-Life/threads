@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.14 Tue Mar 21 08:40:16 EST 2006
+	- Fix for formatting string error
+
 1.13 Mon Mar 20 15:09:42 EST 2006
 	- Use PTHREAD_STACK_MIN if available
 	- Round stack sizes to multiple of page size (usually 4096 or 8192)
