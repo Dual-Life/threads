@@ -1,5 +1,9 @@
 Revision history for Perl extension threads.
 
+1.73 Mon Jun  8 13:17:04 2009
+	- Signal handling during thread creation/destruction (John Wright)
+	- Upgraded ppport.h to Devel::PPPort 3.17
+
 1.72 Wed Feb 25 20:23:25 2009
 	- Correct flags to perl_get_sv() in threads.xs
 	- Use watchdog() in 'free' tests
