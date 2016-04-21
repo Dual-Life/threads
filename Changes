@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.83 Sun Apr 17 23:37:01 2011
+	- Sync from blead
+
 1.82 Fri Dec 24 16:21:56 2010
 	- Document issue with open dir handles
 	- Sync from blead
