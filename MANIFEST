@@ -1,0 +1,24 @@
+MANIFEST
+Changes
+Makefile.PL
+README
+threads.pm
+threads.xs
+threads.h
+ppport.h
+typemap
+hints/linux.pl
+t/basic.t
+t/end.t
+t/join.t
+t/libc.t
+t/list.t
+t/problems.t
+t/stack.t
+t/stack_env.t
+t/stress_cv.t
+t/stress_re.t
+t/stress_string.t
+t/thread.t
+t/test.pl
+META.yml                                 Module meta-data (added by MakeMaker)

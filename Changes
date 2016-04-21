@@ -1,0 +1,10 @@
+Revision history for Perl extension threads.
+
+1.09 Mon Mar 13 14:14:37 EST 2006
+	- Initial release to CPAN
+	- 64-bit TIDs
+	- API for thread stack size (courtesy of Dean Arnold)
+	- Made threads->list() context sensitive
+	- Implemented threads->object($tid) in XS
+	- Added $thr->_handle() method
+
