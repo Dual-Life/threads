@@ -13,6 +13,7 @@ t/blocks.t
 t/context.t
 t/embed.t
 t/end.t
+t/err.t
 t/exit.t
 t/free.t
 t/free2.t

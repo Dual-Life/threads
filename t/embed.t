@@ -23,7 +23,7 @@ BEGIN {
     }
 
     $| = 1;
-    print("1..16\n");
+    print("1..15\n");
 };
 
 ### Start of Testing ###
@@ -39,7 +39,7 @@ MAIN:
     my $cnt = 1;
     foreach my $test (<t/*.t>) {
         # Skip some problematic test files
-        next if ($test =~ /^t\/(?:embed|exit|kill|pod|thread)\.t$/);
+        next if ($test =~ /^t\/(?:embed|err|exit|kill|libc|pod|thread)\.t$/);
 
         # Reopen stdout/err to /dev/null
         open(STDOUT, "+>/dev/null");
