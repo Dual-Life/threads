@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.37 Fri Jul 21 10:51:36 EDT 2006
+	- Revert 'exit' behavior with override
+
 1.36 Mon Jul 10 15:58:13 EDT 2006
 	- Ignore signals sent to terminated threads
 
