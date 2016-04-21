@@ -5,7 +5,9 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.21';
+our $VERSION = '1.22';
+my $XS_VERSION = $VERSION;
+$VERSION = eval $VERSION;
 
 BEGIN {
     # Verify this Perl supports threads
@@ -30,7 +32,7 @@ _MSG_
 
 # Load the XS code
 require XSLoader;
-XSLoader::load('threads', $VERSION);
+XSLoader::load('threads', $XS_VERSION);
 
 
 ### Export ###
@@ -99,11 +101,11 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.21
+This document describes threads version 1.22
 
 =head1 SYNOPSIS
 
-    use threads ('yield', 'stack_size' => 256*4096);
+    use threads ('yield', 'stack_size' => 64*4096);
 
     sub start_thread {
         my @args = @_;
@@ -141,7 +143,7 @@ This document describes threads version 1.21
     }
 
     $stack_size = threads->get_stack_size();
-    $old_size = threads->set_stack_size(512*4096);
+    $old_size = threads->set_stack_size(32*4096);
 
 =head1 DESCRIPTION
 
@@ -324,7 +326,7 @@ The default per-thread stack size for different platforms varies
 significantly, and is almost always far more than is needed for most
 applications.  On Win32, Perl's makefile explicitly sets the default stack to
 16 MB; on most other platforms, the system default is used, which again may be
-much larger than is needed (e.g., the Linux default is around 8 MB).
+much larger than is needed.
 
 By tuning the stack size to more accurately reflect your application's needs,
 you may significantly reduce your application's memory usage, and increase the
@@ -353,6 +355,9 @@ Sets a new default per-thread stack size, and returns the previous setting.
 Some platforms have a minimum thread stack size.  Trying to set the stack size
 below this value will result in a warning, and the minimum stack size will be
 used.
+
+Some Linux platforms have a maximum stack size.  Setting too large of a stack
+size will cause thread creation to fail.
 
 If needed, C<$new_size> will be rounded up to the next multiple of the memory
 page size (usually 4096 or 8192).
@@ -418,13 +423,6 @@ set to the minimum.
 
 =over 4
 
-=item Cannot change stack size of an existing thread
-
-The stack size of currently extant threads cannot be changed, therefore, the
-following results in the above error:
-
-    $thr->set_stack_size($size);
-
 =item This Perl not built to support threads
 
 The particular copy of Perl that you're trying to use was not built using the
@@ -435,23 +433,23 @@ Perl installation to be rebuilt; it is not just a question of adding the
 L<threads> module (i.e., threaded and non-threaded Perls are binary
 incompatible.)
 
+=item Cannot change stack size of an existing thread
+
+The stack size of currently extant threads cannot be changed, therefore, the
+following results in the above error:
+
+    $thr->set_stack_size($size);
+
+=item Thread creation failed: pthread_attr_setstacksize(I<SIZE>) returned 22
+
+The specified I<SIZE> exceeds the system's maximum stack size.  Use a smaller
+value for the stack size.
+
 =back
 
 =head1 BUGS
 
 =over
-
-=item Thread stack size API failures
-
-There have been a few reports of failures when using the thread stack size API
-on some Linux architectures.  If the failure occurs while installing via CPAN,
-you can I<force> the install, and then just avoid using any of the stack size
-features.  If the following runs without error, then the stack size API is
-working:
-
-    perl -Mthreads -e "threads->create({'stack' => 2*1024*1024}, sub {})->join;"
-
-See L<http://rt.cpan.org/Ticket/Display.html?id=18419> for more details.
 
 =item Parent-child threads
 
@@ -502,7 +500,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.21/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.22/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

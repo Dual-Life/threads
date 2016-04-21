@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.22 Fri Apr  7 21:35:06 EDT 2006
+	- Documented maximum stack size error
+
 1.21 Tue Apr  4 13:57:23 EDT 2006
 	- Corrected ->_handle() to return a pointer
 	- Overload !=

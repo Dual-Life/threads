@@ -406,8 +406,8 @@ Perl_ithread_run(void * arg)
         /* Remove args from stack and put back in params array */
         SPAGAIN;
         for (ii=len-1; ii >= 0; ii--) {
-          SV *sv = POPs;
-          av_store(params, ii, SvREFCNT_inc(sv));
+            SV *sv = POPs;
+            av_store(params, ii, SvREFCNT_inc(sv));
         }
 
         /* Check for failure */

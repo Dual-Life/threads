@@ -33,7 +33,7 @@ BEGIN {
     $| = 1;
     print("1..4\n");   ### Number of tests that will be run ###
 
-    $ENV{'PERL5_ITHREADS_STACK_SIZE'} = 1572864;
+    $ENV{'PERL5_ITHREADS_STACK_SIZE'} = 196608;
 };
 
 use threads;
@@ -41,11 +41,11 @@ ok(1, 1, 'Loaded');
 
 ### Start of Testing ###
 
-ok(2, threads->get_stack_size() == 384*4096,
+ok(2, threads->get_stack_size() == 48*4096,
         '$ENV{PERL5_ITHREADS_STACK_SIZE}');
-ok(3, threads->set_stack_size(512*4096) == 384*4096,
+ok(3, threads->set_stack_size(32*4096) == 48*4096,
         'Set returns previous value');
-ok(4, threads->get_stack_size() == 512*4096,
+ok(4, threads->get_stack_size() == 32*4096,
         'Get stack size');
 
 # EOF
