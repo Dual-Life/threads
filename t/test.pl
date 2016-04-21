@@ -306,7 +306,7 @@ sub skip {
     my $why = shift;
     my $n    = @_ ? shift : 1;
     for (1..$n) {
-        print STDOUT "ok $test # skip: $why\n";
+        print STDOUT "ok $test # SKIP $why\n";
         $test = $test + 1;
     }
     local $^W = 0;
@@ -318,7 +318,7 @@ sub todo_skip {
     my $n   = @_ ? shift : 1;
 
     for (1..$n) {
-        print STDOUT "not ok $test # TODO & SKIP: $why\n";
+        print STDOUT "not ok $test # TODO & SKIP $why\n";
         $test = $test + 1;
     }
     local $^W = 0;

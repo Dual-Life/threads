@@ -1,5 +1,12 @@
 Revision history for Perl extension threads.
 
+1.71 Tue Jun 10 17:07:25 2008
+	- Upgraded ppport.h to Devel::PPPort 3.14
+	- Discourage the use of END blocks in threads
+	- LICENSE section in POD
+	- 'die' properly if no compiler
+	- End all tests with exit(0)
+
 1.69 Fri Feb 22 21:22:22 2008
 	- Allow installation on non-threaded Perls
 
