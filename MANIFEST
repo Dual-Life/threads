@@ -29,4 +29,5 @@ t/stress_re.t
 t/stress_string.t
 t/thread.t
 t/test.pl
+examples/pool.pl
 META.yml                                 Module meta-data (added by MakeMaker)
