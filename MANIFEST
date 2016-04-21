@@ -13,6 +13,7 @@ t/end.t
 t/free.t
 t/free2.t
 t/join.t
+t/kill.t
 t/libc.t
 t/list.t
 t/problems.t
