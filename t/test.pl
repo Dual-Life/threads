@@ -876,6 +876,33 @@ sub fresh_perl_like {
 # Many tests use the same format in __DATA__ or external files to specify a
 # sequence of (fresh) tests to run, extra files they may temporarily need, and
 # what the expected output is. So have excatly one copy of the code to run that
+#
+# Each program is source code to run followed by an "EXPECT" line, followed
+# by the expected output.
+#
+# The code to run may contain:
+#   # TODO reason for todo
+#   # SKIP reason for skip
+#   # SKIP ?code to test if this should be skipped
+#   # NAME name of the test (as with ok($ok, $name))
+#
+# The expected output may contain:
+#   OPTION list of options
+#   OPTIONS list of options
+#   PREFIX
+#     indicates that the supplied output is only a prefix to the
+#     expected output
+#
+# The possible options for OPTION may be:
+#   regex - the expected output is a regular expression
+#   random - all lines match but in any order
+#   fatal - the code will fail fatally (croak, die)
+#
+# If the actual output contains a line "SKIPPED" the test will be
+# skipped.
+#
+# If the global variable $FATAL is true then OPTION fatal is the
+# default.
 
 sub run_multiple_progs {
     my $up = shift;
@@ -918,6 +945,10 @@ sub run_multiple_progs {
 		}
 		$reason{$what} = $temp;
 	    }
+	}
+	my $name = '';
+	if ($prog =~ s/^#\s*NAME\s+(.+)\n//m) {
+	    $name = $1;
 	}
 
 	if ($prog =~ /--FILE--/) {
@@ -979,6 +1010,7 @@ sub run_multiple_progs {
 	# any special options? (OPTIONS foo bar zap)
 	my $option_regex = 0;
 	my $option_random = 0;
+	my $fatal = $FATAL;
 	if ($expected =~ s/^OPTIONS? (.+)\n//) {
 	    foreach my $option (split(' ', $1)) {
 		if ($option eq 'regex') { # allow regular expressions
@@ -986,6 +1018,9 @@ sub run_multiple_progs {
 		}
 		elsif ($option eq 'random') { # all lines match, but in any order
 		    $option_random = 1;
+		}
+		elsif ($option eq 'fatal') { # perl should fail
+		    $fatal = 1;
 		}
 		else {
 		    die "$0: Unknown OPTION '$option'\n";
@@ -999,28 +1034,36 @@ sub run_multiple_progs {
 	    print "$results\n" ;
 	    $ok = 1;
 	}
-	elsif ($option_random) {
-	    my @got = sort split "\n", $results;
-	    my @expected = sort split "\n", $expected;
-
-	    $ok = "@got" eq "@expected";
-	}
-	elsif ($option_regex) {
-	    $ok = $results =~ /^$expected/;
-	}
-	elsif ($prefix) {
-	    $ok = $results =~ /^\Q$expected/;
-	}
 	else {
-	    $ok = $results eq $expected;
+	    if ($option_random) {
+	        my @got = sort split "\n", $results;
+	        my @expected = sort split "\n", $expected;
+
+	        $ok = "@got" eq "@expected";
+	    }
+	    elsif ($option_regex) {
+	        $ok = $results =~ /^$expected/;
+	    }
+	    elsif ($prefix) {
+	        $ok = $results =~ /^\Q$expected/;
+	    }
+	    else {
+	        $ok = $results eq $expected;
+	    }
+
+	    if ($ok && $fatal && !($status >> 8)) {
+		$ok = 0;
+	    }
 	}
 
 	local $::TODO = $reason{todo};
 
 	unless ($ok) {
 	    my $err_line = "PROG: $switch\n$prog\n" .
-			   "EXPECTED:\n$expected\n" .
-			   "GOT:\n$results\n";
+			   "EXPECTED:\n$expected\n";
+	    $err_line   .= "EXIT STATUS: != 0\n" if $fatal;
+	    $err_line   .= "GOT:\n$results\n";
+	    $err_line   .= "EXIT STATUS: " . ($status >> 8) . "\n" if $fatal;
 	    if ($::TODO) {
 		$err_line =~ s/^/# /mg;
 		print $err_line;  # Harness can't filter it out from STDERR.
@@ -1030,7 +1073,7 @@ sub run_multiple_progs {
 	    }
 	}
 
-	ok($ok);
+	ok($ok, $name);
 
 	foreach (@temps) {
 	    unlink $_ if $_;
@@ -1064,7 +1107,7 @@ sub can_ok ($@) {
 }
 
 
-# Call $class->new( @$args ); and run the result through isa_ok.
+# Call $class->new( @$args ); and run the result through object_ok.
 # See Test::More::new_ok
 sub new_ok {
     my($class, $args, $obj_name) = @_;
@@ -1078,7 +1121,7 @@ sub new_ok {
     my $error = $@;
 
     if($ok) {
-        isa_ok($obj, $class, $object_name);
+        object_ok($obj, $class, $object_name);
     }
     else {
         ok( 0, "new() died" );
@@ -1099,20 +1142,29 @@ sub isa_ok ($$;$) {
     if( !defined $object ) {
         $diag = "$obj_name isn't defined";
     }
-    elsif( !ref $object ) {
-        $diag = "$obj_name isn't a reference";
-    }
     else {
+        my $whatami = ref $object ? 'object' : 'class';
+
         # We can't use UNIVERSAL::isa because we want to honor isa() overrides
         local($@, $!);  # eval sometimes resets $!
         my $rslt = eval { $object->isa($class) };
-        if( $@ ) {
-            if( $@ =~ /^Can't call method "isa" on unblessed reference/ ) {
+        my $error = $@;  # in case something else blows away $@
+
+        if( $error ) {
+            if( $error =~ /^Can't call method "isa" on unblessed reference/ ) {
+                # It's an unblessed reference
+                $obj_name = 'The reference' unless defined $obj_name;
                 if( !UNIVERSAL::isa($object, $class) ) {
                     my $ref = ref $object;
                     $diag = "$obj_name isn't a '$class' it's a '$ref'";
                 }
-            } else {
+            }
+            elsif( $error =~ /Can't call method "isa" without a package/ ) {
+                # It's something that can't even be a class
+                $obj_name = 'The thing' unless defined $obj_name;
+                $diag = "$obj_name isn't a class or reference";
+            }
+            else {
                 die <<WHOA;
 WHOA! I tried to call ->isa on your object and got some weird error.
 This should never happen.  Please contact the author immediately.
@@ -1122,6 +1174,7 @@ WHOA
             }
         }
         elsif( !$rslt ) {
+            $obj_name = "The $whatami" unless defined $obj_name;
             my $ref = ref $object;
             $diag = "$obj_name isn't a '$class' it's a '$ref'";
         }
@@ -1129,6 +1182,34 @@ WHOA
 
     _ok( !$diag, _where(), $name );
 }
+
+
+sub class_ok {
+    my($class, $isa, $class_name) = @_;
+
+    # Written so as to count as one test
+    local $Level = $Level + 1;
+    if( ref $class ) {
+        ok( 0, "$class is a refrence, not a class name" );
+    }
+    else {
+        isa_ok($class, $isa, $class_name);
+    }
+}
+
+
+sub object_ok {
+    my($obj, $isa, $obj_name) = @_;
+
+    local $Level = $Level + 1;
+    if( !ref $obj ) {
+        ok( 0, "$obj is not a reference" );
+    }
+    else {
+        isa_ok($obj, $isa, $obj_name);
+    }
+}
+
 
 # Purposefully avoiding a closure.
 sub __capture {
@@ -1224,7 +1305,7 @@ sub watchdog ($;$)
 
     # Don't use a watchdog process if 'threads' is loaded -
     #   use a watchdog thread instead
-    if (!$threads_on) {
+    if (!$threads_on || $method eq "process") {
 
         # On Windows and VMS, try launching a watchdog process
         #   using system(1, ...) (see perlport.pod)
@@ -1291,6 +1372,11 @@ sub watchdog ($;$)
             if (kill(0, $pid_to_kill)) {
                 _diag($timeout_msg);
                 kill('KILL', $pid_to_kill);
+		if ($is_cygwin) {
+		    # sometimes the above isn't enough on cygwin
+		    sleep 1; # wait a little, it might have worked after all
+		    system("/bin/kill -f $pid_to_kill");
+		}
             }
 
             # Don't execute END block (added at beginning of this file)
