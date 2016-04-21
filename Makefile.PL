@@ -1,9 +1,13 @@
 # Module makefile for threads (using ExtUtils::MakeMaker)
 
-require 5.008;
-
 use strict;
 use warnings;
+
+use Config;
+BEGIN {
+    die("OS unsupported:  ERROR: This Perl not built to support threads\n")
+        if (! $Config{'useithreads'});
+}
 
 use ExtUtils::MakeMaker;
 
@@ -67,6 +71,7 @@ if (grep { $_ eq 'PERL_CORE=1' } @ARGV) {
                                     'Carp'              => 0,
                                     'XSLoader'          => 0,
 
+                                    'Test::More'        => 0,
                                     'ExtUtils::testlib' => 0,
                                     'Hash::Util'        => 0,
                                     'IO::File'          => 0,
@@ -92,5 +97,23 @@ WriteMakefile(
 
     @conditional_params
 );
+
+# Additional 'make' targets
+sub MY::postamble
+{
+    return <<'_EXTRAS_';
+fixfiles:
+	@dos2unix `cat MANIFEST`
+	@$(CHMOD) 644 `cat MANIFEST`
+	@$(CHMOD) 755 examples/*.pl
+
+ppport:
+	@( cd /tmp; perl -e 'use Devel::PPPort; Devel::PPPort::WriteFile("ppport.h");' )
+	@if ! cmp -s ppport.h /tmp/ppport.h; then \
+	    ( tkdiff ppport.h /tmp/ppport.h & ); \
+	    perl /tmp/ppport.h; \
+	fi
+_EXTRAS_
+}
 
 # EOF

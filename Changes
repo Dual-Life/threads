@@ -1,8 +1,8 @@
 Revision history for Perl extension threads.
 
--
+1.68 Wed Feb 20 17:05:21 2008
 	- Blead change 33024
-	- Upgraded ppport.h to Devel::PPPort 3.13
+	- Upgraded ppport.h to Devel::PPPort 3.13_01
 
 1.67 Tue Sep 18 20:44:40 2007
 	- Test fix for Perl < 5.8.7
