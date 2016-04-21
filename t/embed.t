@@ -11,7 +11,7 @@ BEGIN {
         print("1..0 # Skip: Requires Perl 5.8.1 or later\n");
         exit(0);
     }
-    if ($^O ne 'MSWin32') {
+    if ($^O eq 'MSWin32') {
         print("1..0 # Skip: Cannot test under MSWin32\n");
         exit(0);
     }

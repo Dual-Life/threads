@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.56 -
+	- More fixes to test suite
+
 1.55 Fri Dec 15 11:24:46 EST 2006
 	- Fixes to test suite
 
