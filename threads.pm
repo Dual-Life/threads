@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.19';
+our $VERSION = '1.21';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -82,9 +82,10 @@ sub async (&;@)
     goto &create;
 }
 
-# Overload '==' for checking thread object equality
+# Thread object equality checking
 use overload (
-    '=='       => \&equal,
+    '==' => \&equal,
+    '!=' => sub { ! equal(@_) },
     'fallback' => 1
 );
 
@@ -98,7 +99,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.19
+This document describes threads version 1.21
 
 =head1 SYNOPSIS
 
@@ -279,10 +280,14 @@ objects.  In a scalar context, returns a count of the same.
 =item $thr1->equal($thr2)
 
 Tests if two threads objects are the same thread or not.  This is overloaded
-to the more natural form:
+to the more natural forms:
 
     if ($thr1 == $thr2) {
         print("Threads are the same\n");
+    }
+    # or
+    if ($thr1 != $thr2) {
+        print("Threads differ\n");
     }
 
 (Thread comparison is based on thread IDs.)
@@ -297,9 +302,10 @@ returns a I<threads> object.
 =item $thr->_handle()
 
 This I<private> method returns the memory location of the internal thread
-structure associated with a threads object.  For Win32, this is the handle
-returned by C<CreateThread>; for other platforms, it is the pointer returned
-by C<pthread_create>.
+structure associated with a threads object.  For Win32, this is a pointer to
+the C<HANDLE> value returned by C<CreateThread> (i.e., C<HANDLE *>); for other
+platforms, it is a pointer to the C<pthread_t> structure used in the
+C<pthread_create> call (i.e., C<pthread_t *>.
 
 This method is of no use for general Perl threads programming.  Its intent is
 to provide other (XS-based) thread modules with the capability to access, and
@@ -435,6 +441,18 @@ incompatible.)
 
 =over
 
+=item Thread stack size API failures
+
+There have been a few reports of failures when using the thread stack size API
+on some Linux architectures.  If the failure occurs while installing via CPAN,
+you can I<force> the install, and then just avoid using any of the stack size
+features.  If the following runs without error, then the stack size API is
+working:
+
+    perl -Mthreads -e "threads->create({'stack' => 2*1024*1024}, sub {})->join;"
+
+See L<http://rt.cpan.org/Ticket/Display.html?id=18419> for more details.
+
 =item Parent-child threads
 
 On some platforms, it might not be possible to destroy I<parent> threads while
@@ -484,7 +502,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.19/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.21/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

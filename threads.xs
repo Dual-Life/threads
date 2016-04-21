@@ -842,9 +842,9 @@ ithread__handle(...);
     CODE:
         thread = SV_to_ithread(aTHX_ ST(0));
 #ifdef WIN32
-        XST_mUV(0, PTR2UV(thread->handle));
+        XST_mUV(0, PTR2UV(&thread->handle));
 #else
-        XST_mUV(0, PTR2UV(thread->thr));
+        XST_mUV(0, PTR2UV(&thread->thr));
 #endif
         /* XSRETURN(1); - implied */
 

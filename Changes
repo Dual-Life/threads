@@ -1,5 +1,9 @@
 Revision history for Perl extension threads.
 
+1.21 Tue Apr  4 13:57:23 EDT 2006
+	- Corrected ->_handle() to return a pointer
+	- Overload !=
+
 1.19 Sat Mar 25 18:46:02 EST 2006
 	- Use 'DEFINE' instead of 'CCFLAGS' in Makefile.PL
 
