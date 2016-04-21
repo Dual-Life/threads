@@ -15,14 +15,18 @@ BEGIN {
 
 use ExtUtils::testlib;
 
+use threads;
+use threads::shared;
 
 BEGIN {
+    if (($] < 5.008002) && ($threads::shared::VERSION < 0.92)) {
+        print("1..0 # Skip: Needs threads::shared 0.92 or later\n");
+        exit(0);
+    }
+
     $| = 1;
     print("1..74\n");   ### Number of tests that will be run ###
 };
-
-use threads;
-use threads::shared;
 
 my $TEST = 1;
 share($TEST);

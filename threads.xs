@@ -351,8 +351,8 @@ S_ithread_create(
     SV         **tmps_tmp = PL_tmps_stack;
     IV           tmps_ix  = PL_tmps_ix;
 #ifndef WIN32
-    int          rc_thread_create = 0;
     int          rc_stack_size = 0;
+    int          rc_thread_create = 0;
 #endif
 
     MUTEX_LOCK(&create_destruct_mutex);
@@ -518,7 +518,7 @@ S_ithread_create(
 #ifdef WIN32
     if (thread->handle == NULL) {
 #else
-    if (rc_thread_create || rc_stack_size) {
+    if (rc_stack_size || rc_thread_create) {
 #endif
         MUTEX_UNLOCK(&create_destruct_mutex);
         sv_2mortal(params);
@@ -589,8 +589,11 @@ S_ithread_destruct(pTHX_ ithread *thread)
         return;
     }
 
-    /* Remove from circular list of threads */
     MUTEX_LOCK(&create_destruct_mutex);
+    /* Main thread (0) is immortal and should never get here */
+    assert(thread->tid != 0);
+
+    /* Remove from circular list of threads */
     thread->next->prev = thread->prev;
     thread->prev->next = thread->next;
     thread->next = NULL;
@@ -626,7 +629,7 @@ Perl_ithread_hook(pTHX)
 {
     int veto_cleanup = 0;
     MUTEX_LOCK(&create_destruct_mutex);
-    if ((aTHX == PL_curinterp) && (active_threads > 1)) {
+    if ((aTHX == PL_curinterp) && (active_threads != 1)) {
         if (ckWARN_d(WARN_THREADS)) {
             Perl_warn(aTHX_ "A thread exited while %" IVdf " threads were running", active_threads);
         }

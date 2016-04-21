@@ -1,5 +1,9 @@
 Revision history for Perl extension threads.
 
+1.24 Mon Apr 24 10:29:11 EDT 2006
+	- assert() that thread 0 is never destructed
+	- Determinancy in free.t
+
 1.23 Thu Apr 13 16:57:00 EDT 2006
 	- BUG (RE)FIX: Properly free thread's Perl interpreter
 	- It's an error to detach a thread twice
