@@ -20,6 +20,7 @@ t/join.t
 t/kill.t
 t/libc.t
 t/list.t
+t/no_threads.t
 t/pod.t
 t/problems.t
 t/stack.t

@@ -1,5 +1,10 @@
 Revision history for Perl extension threads.
 
+1.74 Mon Aug 10 18:53:59 2009
+	- Updated DESCRIPTION in POD
+	- Added 'no_threads' test
+	- Upgraded ppport.h to Devel::PPPort 3.19
+
 1.73 Mon Jun  8 13:17:04 2009
 	- Signal handling during thread creation/destruction (John Wright)
 	- Upgraded ppport.h to Devel::PPPort 3.17
