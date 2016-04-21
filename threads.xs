@@ -990,7 +990,7 @@ ithread_self(...)
         ithread *thread;
     CODE:
         /* Class method only */
-        if (SvROK(ST(0))) {
+        if ((items != 1) || SvROK(ST(0))) {
             Perl_croak(aTHX_ "Usage: threads->self()");
         }
         classname = (char *)SvPV_nolen(ST(0));
@@ -1006,6 +1006,7 @@ ithread_tid(...)
     PREINIT:
         ithread *thread;
     CODE:
+        PERL_UNUSED_VAR(items);
         thread = S_SV_to_ithread(aTHX_ ST(0));
         XST_mUV(0, thread->tid);
         /* XSRETURN(1); - implied */
@@ -1027,7 +1028,7 @@ ithread_join(...)
         dMY_POOL;
     PPCODE:
         /* Object method only */
-        if (! sv_isobject(ST(0))) {
+        if ((items != 1) || ! sv_isobject(ST(0))) {
             Perl_croak(aTHX_ "Usage: $thr->join()");
         }
 
@@ -1108,6 +1109,7 @@ ithread_join(...)
 void
 ithread_yield(...)
     CODE:
+        PERL_UNUSED_VAR(items);
         YIELD;
 
 
@@ -1118,6 +1120,8 @@ ithread_detach(...)
         int detach_err;
         dMY_POOL;
     CODE:
+        PERL_UNUSED_VAR(items);
+
         /* Check if the thread is detachable */
         thread = S_SV_to_ithread(aTHX_ ST(0));
         if ((detach_err = (thread->state & (PERL_ITHR_DETACHED|PERL_ITHR_JOINED)))) {
@@ -1164,7 +1168,7 @@ ithread_kill(...)
         }
 
         /* Object method only */
-        if (! sv_isobject(ST(0))) {
+        if ((items != 2) || ! sv_isobject(ST(0))) {
             Perl_croak(aTHX_ "Usage: $thr->kill('SIG...')");
         }
 
@@ -1199,6 +1203,7 @@ ithread_kill(...)
 void
 ithread_DESTROY(...)
     CODE:
+        PERL_UNUSED_VAR(items);
         sv_unmagic(SvRV(ST(0)), PERL_MAGIC_shared_scalar);
 
 
@@ -1207,6 +1212,8 @@ ithread_equal(...)
     PREINIT:
         int are_equal = 0;
     CODE:
+        PERL_UNUSED_VAR(items);
+
         /* Compares TIDs to determine thread equality */
         if (sv_isobject(ST(0)) && sv_isobject(ST(1))) {
             ithread *thr1 = INT2PTR(ithread *, SvIV(SvRV(ST(0))));
@@ -1274,6 +1281,7 @@ ithread__handle(...);
     PREINIT:
         ithread *thread;
     CODE:
+        PERL_UNUSED_VAR(items);
         thread = S_SV_to_ithread(aTHX_ ST(0));
 #ifdef WIN32
         XST_mUV(0, PTR2UV(&thread->handle));
@@ -1289,6 +1297,7 @@ ithread_get_stack_size(...)
         IV stack_size;
         dMY_POOL;
     CODE:
+        PERL_UNUSED_VAR(items);
         if (sv_isobject(ST(0))) {
             /* $thr->get_stack_size() */
             ithread *thread = INT2PTR(ithread *, SvIV(SvRV(ST(0))));
@@ -1326,7 +1335,7 @@ ithread_is_running(...)
         ithread *thread;
     CODE:
         /* Object method only */
-        if (! sv_isobject(ST(0))) {
+        if ((items != 1) || ! sv_isobject(ST(0))) {
             Perl_croak(aTHX_ "Usage: $thr->is_running()");
         }
 
@@ -1340,6 +1349,7 @@ ithread_is_detached(...)
     PREINIT:
         ithread *thread;
     CODE:
+        PERL_UNUSED_VAR(items);
         thread = S_SV_to_ithread(aTHX_ ST(0));
         ST(0) = (thread->state & PERL_ITHR_DETACHED) ? &PL_sv_yes : &PL_sv_no;
         /* XSRETURN(1); - implied */
@@ -1351,7 +1361,7 @@ ithread_is_joinable(...)
         ithread *thread;
     CODE:
         /* Object method only */
-        if (! sv_isobject(ST(0))) {
+        if ((items != 1) || ! sv_isobject(ST(0))) {
             Perl_croak(aTHX_ "Usage: $thr->is_joinable()");
         }
 
@@ -1369,6 +1379,7 @@ ithread_wantarray(...)
     PREINIT:
         ithread *thread;
     CODE:
+        PERL_UNUSED_VAR(items);
         thread = S_SV_to_ithread(aTHX_ ST(0));
         ST(0) = (thread->gimme & G_ARRAY) ? &PL_sv_yes :
                 (thread->gimme & G_VOID)  ? &PL_sv_undef
