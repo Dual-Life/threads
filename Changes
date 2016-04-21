@@ -1,5 +1,10 @@
 Revision history for Perl extension threads.
 
+1.75 Mon Nov 23 15:32:28 2009
+	- Conditionally compile tmps stack cleanup code (bug #70411)
+	- Support mingw64
+	- Install in 'site' for Perl >= 5.011
+
 1.74 Mon Aug 10 18:53:59 2009
 	- Updated DESCRIPTION in POD
 	- Added 'no_threads' test
