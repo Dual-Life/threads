@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+2.02 Thu Jun 11 03:02:21 2015
+	- Make t/test.pl compatible with Perls < 5.10
+
 2.01 Sun Mar  8 02:32:03 2015
 	- Make t/test.pl compatible with Perls < 5.14
 

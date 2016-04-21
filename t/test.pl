@@ -4,12 +4,15 @@
 
 # NOTE:
 #
-# Increment ($x++) has a certain amount of cleverness for things like
+# It's best to not features found only in more modern Perls here, as some cpan
+# distributions copy this file and operate on older Perls.  Similarly keep
+# things simple as this may be run under fairly broken circumstances.  For
+# example, increment ($x++) has a certain amount of cleverness for things like
 #
 #   $x = 'zz';
 #   $x++; # $x eq 'aaa';
 #
-# stands more chance of breaking than just a simple
+# This stands more chance of breaking than just a simple
 #
 #   $x = $x + 1
 #
@@ -300,7 +303,12 @@ sub display {
                     $y = $y . $backslash_escape{$c};
                 } else {
                     my $z = chr $c; # Maybe we can get away with a literal...
-                    if ($z =~ /[[:^print:]]/) {
+
+                    if ($z !~ /[^[:^print:][:^ascii:]]/) {
+                        # The pattern above is equivalent (by de Morgan's
+                        # laws) to:
+                        #     $z !~ /(?[ [:print:] & [:ascii:] ])/
+                        # or, $z is not an ascii printable character
 
                         # Use octal for characters with small ordinals that
                         # are traditionally expressed as octal: the controls
@@ -437,7 +445,7 @@ sub like_yn ($$$@) {
     # We just accept like(..., qr/.../), not like(..., '...'), and
     # definitely not like(..., '/.../') like
     # Test::Builder::maybe_regex() does.
-    unless (re::is_regexp($expected)) {
+    unless (ref($expected) &&  ref($expected) =~ /Regexp/) {
 	die "PANIC: The value '$expected' isn't a regexp. The like() function needs a qr// pattern, not a string";
     }
 
@@ -1581,10 +1589,27 @@ sub watchdog ($;$)
                     _diag("Watchdog warning: $_[0]");
                 };
                 my $sig = $is_vms ? 'TERM' : 'KILL';
-                my $cmd = _create_runperl( prog =>  "sleep($timeout);" .
-                                                    "warn qq/# $timeout_msg" . '\n/;' .
-                                                    "kill($sig, $pid_to_kill);");
-                $watchdog = system(1, $cmd);
+                my $prog = "sleep($timeout);" .
+                           "warn qq/# $timeout_msg" . '\n/;' .
+                           "kill(q/$sig/, $pid_to_kill);";
+
+                # On Windows use the indirect object plus LIST form to guarantee
+                # that perl is launched directly rather than via the shell (see
+                # perlfunc.pod), and ensure that the LIST has multiple elements
+                # since the indirect object plus COMMANDSTRING form seems to
+                # hang (see perl #121283). Don't do this on VMS, which doesn't
+                # support the LIST form at all.
+                if ($is_mswin) {
+                    my $runperl = which_perl();
+                    if ($runperl =~ m/\s/) {
+                        $runperl = qq{"$runperl"};
+                    }
+                    $watchdog = system({ $runperl } 1, $runperl, '-e', $prog);
+                }
+                else {
+                    my $cmd = _create_runperl(prog => $prog);
+                    $watchdog = system(1, $cmd);
+                }
             };
             if ($@ || ($watchdog <= 0)) {
                 _diag('Failed to start watchdog');
@@ -1595,13 +1620,7 @@ sub watchdog ($;$)
 
             # Add END block to parent to terminate and
             #   clean up watchdog process
-            # Win32 watchdog is launched by cmd.exe shell, so use process group
-            # kill, otherwise the watchdog is never killed and harness waits
-            # every time for the timeout, #121395
-            eval( $is_mswin ?
-            "END { local \$! = 0; local \$? = 0;
-                        wait() if kill('-KILL', $watchdog); };"
-            : "END { local \$! = 0; local \$? = 0;
+            eval("END { local \$! = 0; local \$? = 0;
                         wait() if kill('KILL', $watchdog); };");
             return;
         }
