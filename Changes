@@ -1,5 +1,11 @@
 Revision history for Perl extension threads.
 
+1.72 Wed Feb 25 20:23:25 2009
+	- Correct flags to perl_get_sv() in threads.xs
+	- Use watchdog() in 'free' tests
+	- Simplified loading modules in tests
+	- Upgraded ppport.h to Devel::PPPort 3.16
+
 1.71 Tue Jun 10 17:07:25 2008
 	- Upgraded ppport.h to Devel::PPPort 3.14
 	- Discourage the use of END blocks in threads
