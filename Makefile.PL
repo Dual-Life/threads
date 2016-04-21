@@ -43,51 +43,43 @@ sub have_cc
     return;
 }
 
-
-# Build options for different environments
-my @conditional_params;
-if (not grep { $_ eq 'PERL_CORE=1' } @ARGV) {
-    # CPAN
-
-    # Verify that a 'C' compiler is available
-    if (! have_cc()) {
-        die("OS unsupported:  ERROR: No 'C' compiler found to build 'threads'\n");
-    }
-
-    push(@conditional_params, 'DEFINE' => '-DHAS_PPPORT_H',
-                              'PREREQ_PM'         => {
-                                    'strict'            => 0,
-                                    'warnings'          => 0,
-                                    'overload'          => 0,
-                                    'Config'            => 0,
-                                    'Carp'              => 0,
-                                    'XSLoader'          => 0,
-
-                                    'Test::More'        => 0,
-                                    'ExtUtils::testlib' => 0,
-                                    'Hash::Util'        => 0,
-                                    'IO::File'          => 0,
-                              });
+# Verify that a 'C' compiler is available
+if (! have_cc()) {
+    die("OS unsupported:  ERROR: No 'C' compiler found to build 'threads'\n");
 }
 
 
 # Create Makefile
 WriteMakefile(
-    'NAME'              => 'threads',
-    'AUTHOR'            => 'Artur Bergman, Jerry D. Hedden <jdhedden AT cpan DOT org>',
-    'VERSION_FROM'      => 'threads.pm',
-    'ABSTRACT_FROM'     => 'threads.pm',
-    'PM' => {
-        'threads.pm'    => '$(INST_LIBDIR)/threads.pm',
+    'NAME'          => 'threads',
+
+    'AUTHOR'        => 'Artur Bergman, Jerry D. Hedden <jdhedden AT cpan DOT org>',
+
+    'VERSION_FROM'  => 'lib/threads.pm',
+    'ABSTRACT_FROM' => 'lib/threads.pm',
+
+    'PREREQ_PM'     => {
+        'strict'            => 0,
+        'warnings'          => 0,
+        'overload'          => 0,
+        'Config'            => 0,
+        'Carp'              => 0,
+        'XSLoader'          => 0,
+
+        'Test::More'        => 0,
+        'ExtUtils::testlib' => 0,
+        'Hash::Util'        => 0,
+        'IO::File'          => 0,
     },
-    'INSTALLDIRS'       => (($] < 5.011) ? 'perl' : 'site'),
+
+    'DEFINE'        => '-DHAS_PPPORT_H',
+
+    'INSTALLDIRS'   => (($] < 5.011) ? 'perl' : 'site'),
 
     ((ExtUtils::MakeMaker->VERSION() lt '6.25') ?
         ('PL_FILES' => { })            : ()),
     ((ExtUtils::MakeMaker->VERSION() gt '6.30') ?
         ('LICENSE'  => 'perl')         : ()),
-
-    @conditional_params
 );
 
 # Additional 'make' targets

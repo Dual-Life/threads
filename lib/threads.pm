@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.77';
+our $VERSION = '1.78';
 my $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -134,7 +134,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.77
+This document describes threads version 1.78
 
 =head1 SYNOPSIS
 
@@ -910,7 +910,7 @@ can lead to ever-increasing growth in the memory footprint of the Perl
 interpreter.  While it is simple to just launch threads and then
 C<-E<gt>join()> or C<-E<gt>detach()> them, for long-lived applications, it is
 better to maintain a pool of threads, and to reuse them for the work needed,
-using L<queues|/Thread::Queue> to notify threads of pending work.  The CPAN
+using L<queues|Thread::Queue> to notify threads of pending work.  The CPAN
 distribution of this module contains a simple example
 (F<examples/pool_reuse.pl>) illustrating the creation, use and monitoring of a
 pool of I<reusable> threads.
@@ -1005,6 +1005,12 @@ mutexes that are needed to control functionality within the L<threads> module.
 For this reason, the use of C<END> blocks in threads is B<strongly>
 discouraged.
 
+=item Open directory handles
+
+Spawning threads with open directory handles (see
+L<opendir|perlfunc/"opendir DIRHANDLE,EXPR">) will crash the interpreter.
+L<[perl #75154]|http://rt.perl.org/rt3/Public/Bug/Display.html?id=75154>
+
 =item Perl Bugs and the CPAN Version of L<threads>
 
 Support for threads extends beyond the code in this module (i.e.,
@@ -1034,7 +1040,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.77/threads.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.78/threads.pm>
 
 Source repository:
 L<http://code.google.com/p/threads-shared/>
