@@ -2,6 +2,11 @@ use strict;
 use warnings;
 
 BEGIN {
+    if (! $ENV{RUN_MAINTAINER_TESTS}) {
+        print("1..0 # Skip: Module maintainer tests\n");
+        exit(0);
+    }
+
     eval {
         require Test::More;
         Test::More->import('tests' => 3);

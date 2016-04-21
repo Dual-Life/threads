@@ -9,4 +9,9 @@
 #  define SAVEBOOL(a)
 #endif
 
+/* Added in 5.11.x */
+#ifndef G_WANT
+#  define G_WANT                (128|1)
+#endif
+
 #endif

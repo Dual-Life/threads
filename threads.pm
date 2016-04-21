@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.66';
+our $VERSION = '1.67';
 my $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -134,7 +134,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.66
+This document describes threads version 1.67
 
 =head1 SYNOPSIS
 
@@ -978,6 +978,10 @@ with threads may result in warning messages concerning leaked scalars or
 unreferenced scalars.  However, such warnings are harmless, and may safely be
 ignored.
 
+You can search for L<threads> related bug reports at
+L<http://rt.cpan.org/Public/>.  If needed submit any new bugs, problems,
+patches, etc. to: L<http://rt.cpan.org/Public/Dist/Display.html?Name=threads>
+
 =back
 
 =head1 REQUIREMENTS
@@ -990,7 +994,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.66/threads.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.67/threads.pm>
 
 Source repository:
 L<http://code.google.com/p/threads-shared/>

@@ -1,5 +1,12 @@
 Revision history for Perl extension threads.
 
+-
+	- Blead change 33024
+	- Upgraded ppport.h to Devel::PPPort 3.13
+
+1.67 Tue Sep 18 20:44:40 2007
+	- Test fix for Perl < 5.8.7
+
 1.66 Fri Sep 14 18:54:20 2007
 	- [perl #45053] Memory corruption with heavy module loading in threads
 	- Upgraded ppport.h to Devel::PPPort 3.11_06
