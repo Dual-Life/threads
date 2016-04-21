@@ -1,5 +1,11 @@
 Revision history for Perl extension threads.
 
+1.76 Tue Mar  9 14:02:43 EST 2010
+	- Handle magic on arg to ->object() (bug #73330)
+	- Make ->object(threads->tid()) work like ->self() (bug #73330)
+	- Noted memory consumption issue in POD
+	- Added reusable thread pool example
+
 1.75 Mon Nov 23 15:32:28 2009
 	- Conditionally compile tmps stack cleanup code (bug #70411)
 	- Support mingw64

@@ -525,7 +525,7 @@ sub runperl {
 	my @keys = grep {exists $ENV{$_}} qw(CDPATH IFS ENV BASH_ENV);
 	local @ENV{@keys} = ();
 	# Untaint, plus take out . and empty string:
-	local $ENV{'DCL$PATH'} = $1 if $is_vms && ($ENV{'DCL$PATH'} =~ /(.*)/s);
+	local $ENV{'DCL$PATH'} = $1 if $is_vms && exists($ENV{'DCL$PATH'}) && ($ENV{'DCL$PATH'} =~ /(.*)/s);
 	$ENV{PATH} =~ /(.*)/s;
 	local $ENV{PATH} =
 	    join $sep, grep { $_ ne "" and $_ ne "." and -d $_ and
@@ -738,9 +738,7 @@ sub fresh_perl_like {
     my($prog, $expected, $runperl_args, $name) = @_;
     local $Level = 2;
     _fresh_perl($prog,
-		sub { @_ ?
-			  $_[0] =~ (ref $expected ? $expected : /$expected/) :
-		          $expected },
+		sub { @_ ? $_[0] =~ $expected : $expected },
 		$runperl_args, $name);
 }
 
