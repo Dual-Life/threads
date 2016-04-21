@@ -1,5 +1,8 @@
 Revision history for Perl extension threads.
 
+1.79 Fri Sep 24 18:40:59 2010
+	- Fix failing tests in t/kill2.t
+
 1.78 Wed Sep 22 17:21:22 2010
 	- Handle missing signal handler in thread (threads bug #60460)
 

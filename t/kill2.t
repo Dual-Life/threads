@@ -15,17 +15,32 @@ use ExtUtils::testlib;
 use threads;
 
 BEGIN {
-    $| = 1;
-    print("1..3\n");   ### Number of tests that will be run ###
+    if (! eval 'use threads::shared; 1') {
+        skip_all('threads::shared not available');
+    }
+
+    local $SIG{'HUP'} = sub {};
+    my $thr = threads->create(sub {});
+    eval { $thr->kill('HUP') };
+    $thr->join();
+    if ($@ && $@ =~ /safe signals/) {
+        skip_all('Not using safe signals');
+    }
+
+    plan(3);
 };
 
 fresh_perl_is(<<'EOI', 'ok', { }, 'No signal handler in thread');
     use threads;
+    use Thread::Semaphore;
+    my $sema = Thread::Semaphore->new(0);
     my $test = sub {
-        while(1) { sleep(1) }
+        my $sema = shift;
+        $sema->up();
+        while(1) { sleep(1); }
     };
-    my $thr = threads->create($test);
-    threads->yield();
+    my $thr = threads->create($test, $sema);
+    $sema->down();
     $thr->detach();
     eval {
         $thr->kill('STOP');
@@ -35,12 +50,16 @@ EOI
 
 fresh_perl_is(<<'EOI', 'ok', { }, 'Handler to signal mismatch');
     use threads;
+    use Thread::Semaphore;
+    my $sema = Thread::Semaphore->new(0);
     my $test = sub {
+        my $sema = shift;
         $SIG{'TERM'} = sub { threads->exit() };
-        while(1) { sleep(1) }
+        $sema->up();
+        while(1) { sleep(1); }
     };
-    my $thr = threads->create($test);
-    threads->yield();
+    my $thr = threads->create($test, $sema);
+    $sema->down();
     $thr->detach();
     eval {
         $thr->kill('STOP');
@@ -50,12 +69,16 @@ EOI
 
 fresh_perl_is(<<'EOI', 'ok', { }, 'Handler and signal match');
     use threads;
+    use Thread::Semaphore;
+    my $sema = Thread::Semaphore->new(0);
     my $test = sub {
+        my $sema = shift;
         $SIG{'STOP'} = sub { threads->exit() };
-        while(1) { sleep(1) }
+        $sema->up();
+        while(1) { sleep(1); }
     };
-    my $thr = threads->create($test);
-    threads->yield();
+    my $thr = threads->create($test, $sema);
+    $sema->down();
     $thr->detach();
     eval {
         $thr->kill('STOP');
