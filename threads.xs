@@ -530,6 +530,7 @@ SV_to_ithread(pTHX_ SV *sv)
 
 /* threads->create()
  * Called in context of parent thread.
+ * Called with create_destruct_mutex locked.  (Unlocked on error.)
  */
 static ithread *
 S_ithread_create(
@@ -726,6 +727,7 @@ S_ithread_create(
 #else
     if (rc_stack_size || rc_thread_create) {
 #endif
+        /* Must unlock mutex for destruct call */
         MUTEX_UNLOCK(&create_destruct_mutex);
         sv_2mortal(params);
         S_ithread_destruct(aTHX_ thread);
@@ -874,7 +876,7 @@ ithread_create(...)
                                         exit_opt,
                                         newRV_noinc((SV*)params));
         if (! thread) {
-            XSRETURN_UNDEF;
+            XSRETURN_UNDEF;     /* Mutex already unlocked */
         }
         ST(0) = sv_2mortal(ithread_to_SV(aTHX_ Nullsv, thread, classname, FALSE));
 
