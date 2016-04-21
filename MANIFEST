@@ -9,6 +9,7 @@ ppport.h
 typemap
 hints/linux.pl
 t/basic.t
+t/blocks.t
 t/end.t
 t/free.t
 t/free2.t
