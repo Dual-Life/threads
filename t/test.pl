@@ -152,6 +152,39 @@ sub skip_all_without_config {
     }
 }
 
+sub find_git_or_skip {
+    my ($found_dir, $reason);
+    if (-d '.git') {
+	$found_dir = 1;
+    } elsif (-l 'MANIFEST' && -l 'AUTHORS') {
+	my $where = readlink 'MANIFEST';
+	die "Can't readling MANIFEST: $!" unless defined $where;
+	die "Confusing symlink target for MANIFEST, '$where'"
+	    unless $where =~ s!/MANIFEST\z!!;
+	if (-d "$where/.git") {
+	    # Looks like we are in a symlink tree
+	    chdir $where or die "Can't chdir '$where': $!";
+	    note("Found source tree at $where");
+	    $found_dir = 1;
+	}
+    }
+    if ($found_dir) {
+	my $version_string = `git --version`;
+	if (defined $version_string
+	      && $version_string =~ /\Agit version (\d+\.\d+\.\d+)(.*)/) {
+	    return if eval "v$1 ge v1.5.0";
+	    # If you have earlier than 1.5.0 and it works, change this test
+	    $reason = "in git checkout, but git version '$1$2' too old";
+	} else {
+	    $reason = "in git checkout, but cannot run git";
+	}
+    } else {
+	$reason = 'not being run from a git checkout';
+    }
+    skip_all($reason) if $_[0] && $_[0] eq 'all';
+    skip($reason, @_);
+}
+
 sub _ok {
     my ($pass, $where, $name, @mess) = @_;
     # Do not try to microoptimize by factoring out the "not ".
