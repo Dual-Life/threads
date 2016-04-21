@@ -470,10 +470,10 @@ S_ithread_run(void * arg)
 {
     ithread *thread = (ithread *)arg;
     int jmp_rc = 0;
-    I32 oldscope;
+    volatile I32 oldscope;
     volatile int exit_app = 0;   /* Thread terminated using 'exit' */
     volatile int exit_code = 0;
-    int died = 0;       /* Thread terminated abnormally */
+    volatile int died = 0;       /* Thread terminated abnormally */
 
     dJMPENV;
 
@@ -718,7 +718,7 @@ S_ithread_create(
           int fd = PerlIO_fileno(Perl_error_log);
           if (fd >= 0) {
             /* If there's no error_log, we cannot scream about it missing. */
-            PerlLIO_write(fd, PL_no_mem, strlen(PL_no_mem));
+            PERL_UNUSED_RESULT(PerlLIO_write(fd, PL_no_mem, strlen(PL_no_mem)));
           }
         }
         my_exit(1);

@@ -1,7 +1,5 @@
 #
-# t/test.pl - most of Test::More functionality without the fuss, plus
-# has mappings native_to_latin1 and latin1_to_native so that fewer tests
-# on non ASCII-ish platforms need to be skipped
+# t/test.pl - most of Test::More functionality without the fuss
 
 
 # NOTE:
@@ -105,6 +103,12 @@ sub is_miniperl {
     return !defined &DynaLoader::boot_DynaLoader;
 }
 
+sub set_up_inc {
+    # Don’t clobber @INC under miniperl
+    @INC = () unless is_miniperl;
+    unshift @INC, @_;
+}
+
 sub _comment {
     return map { /^#/ ? "$_\n" : "# $_\n" }
            map { split /\n/ } @_;
@@ -155,6 +159,13 @@ sub skip_all_without_config {
 	$key =~ s/^use//;
 	$key =~ s/^d_//;
 	skip_all("no $key");
+    }
+}
+
+sub skip_all_without_unicode_tables { # (but only under miniperl)
+    if (is_miniperl()) {
+        skip_all_if_miniperl("Unicode tables not built yet")
+            unless eval 'require "unicore/Heavy.pl"';
     }
 }
 
@@ -282,7 +293,7 @@ sub display {
     foreach my $x (@_) {
         if (defined $x and not ref $x) {
             my $y = '';
-            foreach my $c (unpack("U*", $x)) {
+            foreach my $c (unpack("W*", $x)) {
                 if ($c > 255) {
                     $y = $y . sprintf "\\x{%x}", $c;
                 } elsif ($backslash_escape{$c}) {
@@ -464,7 +475,21 @@ sub next_test {
 # be compatible with Test::More::skip().
 sub skip {
     my $why = shift;
-    my $n    = @_ ? shift : 1;
+    my $n   = @_ ? shift : 1;
+    my $bad_swap;
+    my $both_zero;
+    {
+      local $^W = 0;
+      $bad_swap = $why > 0 && $n == 0;
+      $both_zero = $why == 0 && $n == 0;
+    }
+    if ($bad_swap || $both_zero || @_) {
+      my $arg = "'$why', '$n'";
+      if (@_) {
+        $arg .= join(", ", '', map { qq['$_'] } @_);
+      }
+      die qq[$0: expected skip(why, count), got skip($arg)\n];
+    }
     for (1..$n) {
         _print "ok $test # skip $why\n";
         $test = $test + 1;
@@ -478,10 +503,11 @@ sub skip_if_miniperl {
 }
 
 sub skip_without_dynamic_extension {
-    my ($extension) = @_;
-    skip("no dynamic loading on miniperl, no $extension") if is_miniperl();
-    return if &_have_dynamic_extension;
-    skip("$extension was not built");
+    my $extension = shift;
+    skip("no dynamic loading on miniperl, no extension $extension", @_)
+	if is_miniperl();
+    return if &_have_dynamic_extension($extension);
+    skip("extension $extension was not built", @_);
 }
 
 sub todo_skip {
@@ -617,7 +643,7 @@ sub _create_runperl { # Create the string to qx in runperl().
     if (defined $args{prog}) {
 	die "test.pl:runperl(): both 'prog' and 'progs' cannot be used " . _where()
 	    if defined $args{progs};
-        $args{progs} = [$args{prog}]
+        $args{progs} = [split /\n/, $args{prog}, -1]
     }
     if (defined $args{progs}) {
 	die "test.pl:runperl(): 'progs' must be an ARRAYREF " . _where()
@@ -704,6 +730,7 @@ sub _create_runperl { # Create the string to qx in runperl().
     return $runperl;
 }
 
+# sub run_perl {} is alias to below
 sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
@@ -1415,7 +1442,7 @@ sub class_ok {
     # Written so as to count as one test
     local $Level = $Level + 1;
     if( ref $class ) {
-        ok( 0, "$class is a refrence, not a class name" );
+        ok( 0, "$class is a reference, not a class name" );
     }
     else {
         isa_ok($class, $isa, $class_name);
