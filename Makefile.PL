@@ -5,9 +5,20 @@ require 5.008;
 use strict;
 use warnings;
 
-my $PERL_CORE = grep { $_ eq 'PERL_CORE=1' } @ARGV;
-
 use ExtUtils::MakeMaker;
+
+
+# Build options for different environments
+my @conditional_params;
+if (grep { $_ eq 'PERL_CORE=1' } @ARGV) {
+    # Core
+    push(@conditional_params, 'MAN3PODS' => {},
+                              'NORECURS' => 1);
+} else {
+    # CPAN
+    push(@conditional_params, 'CCFLAGS'  => '-DHAS_PPPORT_H');
+}
+
 
 WriteMakefile(
     'NAME'              => 'threads',
@@ -23,16 +34,12 @@ WriteMakefile(
     },
     'INSTALLDIRS'       => 'perl',
 
-    # In core, ext/threads/shared is a completely different module,
-    # so don't recurse into it.
-    'NORECURS'          => 1,
-
     ((ExtUtils::MakeMaker->VERSION() lt '6.25') ?
         ('PL_FILES' => { })            : ()),
     ((ExtUtils::MakeMaker->VERSION() gt '6.30') ?
         ('LICENSE'  => 'perl')         : ()),
 
-    'CCFLAGS'           => ($PERL_CORE) ? '' : '-DHAVE_PPPORT_H',
+    @conditional_params
 );
 
 

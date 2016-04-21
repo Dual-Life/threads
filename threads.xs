@@ -2,7 +2,7 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#ifdef HAVE_PPPORT_H
+#ifdef HAS_PPPORT_H
 #  define NEED_newRV_noinc
 #  define NEED_sv_2pv_nolen
 #  include "ppport.h"
@@ -580,8 +580,8 @@ Perl_ithread_create(
             attr_inited = 1;
         }
 
-        /* Threads start out joinable */
 #  ifdef PTHREAD_ATTR_SETDETACHSTATE
+        /* Threads start out joinable */
         PTHREAD_ATTR_SETDETACHSTATE(&attr, attr_joinable);
 #  endif
 
@@ -601,7 +601,7 @@ Perl_ithread_create(
                                               (void *)thread);
 #  else
 #    if defined(HAS_PTHREAD_ATTR_SETSCOPE) && defined(PTHREAD_SCOPE_SYSTEM)
-            pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM );
+            pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 #    endif
             rc_thread_create = pthread_create(&thread->thr,
                                               &attr,
@@ -624,7 +624,7 @@ Perl_ithread_create(
     }
 #endif
 
-    /* Check for error */
+    /* Check for errors */
 #ifdef WIN32
     if (thread->handle == NULL) {
 #else
