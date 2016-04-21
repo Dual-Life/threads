@@ -172,7 +172,7 @@ Perl_ithread_destruct(pTHX_ ithread *thread)
         perl_free(interp);
 #ifdef WIN32
     if (handle)
-        CloseHandle(handle);
+        CloseHandle(thread);
 #endif
 }
 
@@ -925,9 +925,22 @@ ithread_set_stack_size(...)
 
 
 void
-yield(...)
+ithread_yield(...)
     CODE:
         YIELD;
+
+
+void
+ithread_equal(...)
+    CODE:
+        if (sv_isobject(ST(0)) && sv_isobject(ST(1))) {
+            ithread *thr1 = INT2PTR(ithread *, SvIV(SvRV(ST(0))));
+            ithread *thr2 = INT2PTR(ithread *, SvIV(SvRV(ST(1))));
+            ST(0) = (thr1->tid == thr2->tid) ? &PL_sv_yes : &PL_sv_no;
+        } else {
+            ST(0) = &PL_sv_no;
+        }
+        /* XSRETURN(1); - implied */
 
 #endif /* USE_ITHREADS */
 

@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 BEGIN {
     # Verify this Perl supports threads
@@ -13,6 +13,9 @@ BEGIN {
     if (! $Config{useithreads}) {
         die("This Perl not built to support threads\n");
     }
+
+    # Declare that we have been loaded
+    $threads::threads = 1;
 
     # Complain if 'threads' is loaded after 'threads::shared'
     if ($threads::shared::threads_shared) {
@@ -29,8 +32,6 @@ _MSG_
 require XSLoader;
 XSLoader::load('threads', $VERSION);
 
-$threads::threads = 1;
-
 
 ### Export ###
 
@@ -46,7 +47,7 @@ sub import
         if ($sym =~ /^stack/) {
             threads->set_stack_size(shift);
 
-        } elsif ($sym eq 'all') {
+        } elsif ($sym =~ /all/) {
             push(@EXPORT, qw(yield));
 
         } else {
@@ -81,13 +82,6 @@ sub async (&;@)
     goto &create;
 }
 
-# Thread object method for checking equality against another thread object
-sub equal
-{
-    return (($_[0]->tid == $_[1]->tid) || 0);   # || 0 to ensure compatibility
-                                                # with previous versions
-}
-
 # Overload '==' for checking thread object equality
 use overload (
     '=='       => \&equal,
@@ -104,7 +98,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.11
+This document describes threads version 1.12
 
 =head1 SYNOPSIS
 
@@ -471,7 +465,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.11/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.12/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

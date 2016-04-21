@@ -2,11 +2,9 @@ use strict;
 use warnings;
 
 BEGIN {
-    if (-d 't') {
-        chdir('t');
-    }
-    if (-d '../lib') {
-        push(@INC, '../lib');
+    if ($ENV{'PERL_CORE'}){
+        chdir 't';
+        unshift @INC, '../lib';
     }
     use Config;
     if (! $Config{'useithreads'}) {
