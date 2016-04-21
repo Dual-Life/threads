@@ -15,8 +15,24 @@ BEGIN {
 
 use ExtUtils::testlib;
 
+use threads;
+use threads::shared;
+
+BEGIN {
+    $| = 1;
+    print("1..17\n");   ### Number of tests that will be run ###
+};
+
+my $TEST = 1;
+share($TEST);
+
+ok(1, 'Loaded');
+
 sub ok {
-    my ($id, $ok, $name) = @_;
+    my ($ok, $name) = @_;
+
+    lock($TEST);
+    my $id = $TEST++;
 
     # You have to do it this way or VMS will get confused.
     if ($ok) {
@@ -30,40 +46,28 @@ sub ok {
 }
 
 sub skip {
-    my $id = shift;
-    ok(shift, 1, "# Skipped: @_");
+    ok(1, '# Skipped: ' . $_[0]);
 }
 
-BEGIN {
-    $| = 1;
-    print("1..17\n");   ### Number of tests that will be run ###
-};
-
-use threads;
-use threads::shared;
-ok(1, 1, 'Loaded');
 
 ### Start of Testing ###
 
-my $test_id = 1;
-share($test_id);
-
 {
     my $retval = threads->create(sub { return ("hi") })->join();
-    ok(++$test_id, $retval eq 'hi', "Check basic returnvalue");
+    ok($retval eq 'hi', "Check basic returnvalue");
 }
 {
     my ($thread) = threads->create(sub { return (1,2,3) });
     my @retval = $thread->join();
-    ok(++$test_id, $retval[0] == 1 && $retval[1] == 2 && $retval[2] == 3,'');
+    ok($retval[0] == 1 && $retval[1] == 2 && $retval[2] == 3,'');
 }
 {
     my $retval = threads->create(sub { return [1] })->join();
-    ok(++$test_id, $retval->[0] == 1,"Check that a array ref works",);
+    ok($retval->[0] == 1,"Check that a array ref works",);
 }
 {
     my $retval = threads->create(sub { return { foo => "bar" }})->join();
-    ok(++$test_id, $retval->{foo} eq 'bar',"Check that hash refs work");
+    ok($retval->{foo} eq 'bar',"Check that hash refs work");
 }
 {
     my $retval = threads->create( sub {
@@ -71,7 +75,7 @@ share($test_id);
         print $fh "test\n";
         return $fh;
     })->join();
-    ok(++$test_id, ref($retval) eq 'GLOB', "Check that we can return FH $retval");
+    ok(ref($retval) eq 'GLOB', "Check that we can return FH $retval");
     print $retval "test2\n";
     close($retval);
     unlink("threadtest");
@@ -79,15 +83,15 @@ share($test_id);
 {
     my $test = "hi";
     my $retval = threads->create(sub { return $_[0]}, \$test)->join();
-    ok(++$test_id, $$retval eq 'hi','');
+    ok($$retval eq 'hi','');
 }
 {
     my $test = "hi";
     share($test);
     my $retval = threads->create(sub { return $_[0]}, \$test)->join();
-    ok(++$test_id, $$retval eq 'hi','');
+    ok($$retval eq 'hi','');
     $test = "foo";
-    ok(++$test_id, $$retval eq 'foo','');
+    ok($$retval eq 'foo','');
 }
 {
     my %foo;
@@ -98,7 +102,7 @@ share($test_id);
         $foo = "thread1";
         return $foo{bar} = \$foo;
     })->join();
-    ok(++$test_id, 1,"");
+    ok(1,"");
 }
 
 # We parse ps output so this is OS-dependent.
@@ -126,15 +130,15 @@ if ($^O eq 'linux') {
         }
         close PS or die;
         if ($sawpid) {
-            ok(++$test_id, $sawpid && $sawexe, 'altering $0 is effective');
+            ok($sawpid && $sawexe, 'altering $0 is effective');
         } else {
-            skip(++$test_id, "\$0 check: did not see pid $$ in 'ps -f |'");
+            skip("\$0 check: did not see pid $$ in 'ps -f |'");
         }
     } else {
-        skip(++$test_id,"\$0 check: opening 'ps -f |' failed: $!");
+        skip("\$0 check: opening 'ps -f |' failed: $!");
     }
 } else {
-    skip(++$test_id,"\$0 check: only on Linux");
+    skip("\$0 check: only on Linux");
 }
 
 {
@@ -142,9 +146,9 @@ if ($^O eq 'linux') {
     $t->join();
     threads->create(sub {})->join();
     eval { $t->join(); };
-    ok(++$test_id, ($@ =~ /Thread already joined/), "Double join works");
+    ok(($@ =~ /Thread already joined/), "Double join works");
     eval { $t->detach(); };
-    ok(++$test_id, ($@ =~ /Cannot detach a joined thread/), "Detach joined thread");
+    ok(($@ =~ /Cannot detach a joined thread/), "Detach joined thread");
 }
 
 {
@@ -152,19 +156,18 @@ if ($^O eq 'linux') {
     $t->detach();
     threads->create(sub {})->join();
     eval { $t->detach(); };
-    ok(++$test_id, ($@ =~ /Thread already detached/), "Double detach works");
+    ok(($@ =~ /Thread already detached/), "Double detach works");
     eval { $t->join(); };
-    ok(++$test_id, ($@ =~ /Cannot join a detached thread/), "Join detached thread");
+    ok(($@ =~ /Cannot join a detached thread/), "Join detached thread");
 }
 
 {
-    no warnings 'deprecated';
-
-    # The "use IO" is not actually used for anything; its only purpose is to
-    # incite a lot of calls to newCONSTSUB.  See the p5p archives for
+    # The "use IO::File" is not actually used for anything; its only purpose
+    # is incite a lot of calls to newCONSTSUB.  See the p5p archives for
     # the thread "maint@20974 or before broke mp2 ithreads test".
-    use IO;
-    $_->join for map threads->create(sub{ok(++$test_id, $_, "stress newCONSTSUB")}), 1..2;
+    use IO::File;
+    # This coredumped between #20930 and #21000
+    $_->join for map threads->create(sub{ok($_, "stress newCONSTSUB")}), 1..2;
 }
 
 # EOF

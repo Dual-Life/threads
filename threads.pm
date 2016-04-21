@@ -5,7 +5,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.24';
+our $VERSION = '1.25';
 my $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -102,7 +102,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.24
+This document describes threads version 1.25
 
 =head1 SYNOPSIS
 
@@ -492,9 +492,6 @@ problem.)
 
 =back
 
-View existing bug reports at, and submit any new bugs, problems, patches, etc.
-to: L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=threads>
-
 =head1 REQUIREMENTS
 
 Perl 5.8.0 or later
@@ -505,7 +502,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.24/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.25/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

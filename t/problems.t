@@ -18,7 +18,7 @@ use ExtUtils::testlib;
 BEGIN {
     $| = 1;
     if ($] == 5.008) {
-        print("1..14\n");   ### Number of tests that will be run ###
+        print("1..11\n");   ### Number of tests that will be run ###
     } else {
         print("1..15\n");   ### Number of tests that will be run ###
     }
@@ -36,9 +36,13 @@ use Hash::Util 'lock_keys';
 
 my $test :shared = 2;
 
+# Note that we can't use Test::More here, as we would need to call is()
+# from within the DESTROY() function at global destruction time, and
+# parts of Test::* may have already been freed by then
 sub is($$$)
 {
     my ($got, $want, $desc) = @_;
+    lock($test);
     if ($got ne $want) {
         print("# EXPECTED: $want\n");
         print("# GOT:      $got\n");
@@ -49,18 +53,15 @@ sub is($$$)
 }
 
 
+# This tests for too much destruction which was caused by cloning stashes
+# on join which led to double the dataspace under 5.8.0
+if ($] != 5.008)
 {
-    # This tests for too much destruction which was caused by cloning stashes
-    # on join which led to double the dataspace
-
     sub Foo::DESTROY
     {
         my $self = shift;
         my ($package, $file, $line) = caller;
-        if (defined($self->{tid})) {
-            is(threads->tid(),$self->{tid},
-                    "In destroy[$self->{tid}] it should be correct too" )
-        }
+        is(threads->tid(), $self->{tid}, "In destroy[$self->{tid}] it should be correct too" );
     }
 
     my $foo = bless {tid => 0}, 'Foo';
@@ -78,14 +79,17 @@ sub is($$$)
 # disallow that to be done because an attempt was made to change a variable
 # with the :unique attribute.
 
-if ($] == 5.008 || $] >= 5.008003) {
-    threads->create( sub {1} )->join;
-    my $not = eval { Config::myconfig() } ? '' : 'not ';
-    print "${not}ok $test - Are we able to call Config::myconfig after clone\n";
-} else {
-    print "ok $test # Skip Are we able to call Config::myconfig after clone\n";
+{
+    lock($test);
+    if ($] == 5.008 || $] >= 5.008003) {
+        threads->create( sub {1} )->join;
+        my $not = eval { Config::myconfig() } ? '' : 'not ';
+        print "${not}ok $test - Are we able to call Config::myconfig after clone\n";
+    } else {
+        print "ok $test # Skip Are we able to call Config::myconfig after clone\n";
+    }
+    $test++;
 }
-$test++;
 
 
 # bugid 24383 - :unique hashes weren't being made readonly on interpreter
@@ -95,6 +99,7 @@ our $unique_scalar : unique;
 our @unique_array : unique;
 our %unique_hash : unique;
 threads->create(sub {
+        lock($test);
         my $TODO = ":unique needs to be re-implemented in a non-broken way";
         eval { $unique_scalar = 1 };
         print $@ =~ /read-only/
@@ -117,14 +122,17 @@ threads->create(sub {
 # bugid #24940 :unique should fail on my and sub declarations
 
 for my $decl ('my $x : unique', 'sub foo : unique') {
-    if ($] >= 5.008005) {
-        eval $decl;
-        print $@ =~ /^The 'unique' attribute may only be applied to 'our' variables/
-                ? '' : 'not ', "ok $test - $decl\n";
-    } else {
-        print("ok $test # Skip $decl\n");
+    {
+        lock($test);
+        if ($] >= 5.008005) {
+            eval $decl;
+            print $@ =~ /^The 'unique' attribute may only be applied to 'our' variables/
+                    ? '' : 'not ', "ok $test - $decl\n";
+        } else {
+            print("ok $test # Skip $decl\n");
+        }
+        $test++;
     }
-    $test++;
 }
 
 
