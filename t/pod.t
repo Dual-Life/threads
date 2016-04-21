@@ -4,7 +4,7 @@ use warnings;
 BEGIN {
     eval {
         require Test::More;
-        import Test::More 'tests' => 2;
+        Test::More->import('tests' => 3);
     };
     if ($@) {
         print("1..0 # Skip: Test::More not available\n");
@@ -41,4 +41,35 @@ SKIP: {
     );
 }
 
-# EOF
+SKIP: {
+    eval "use Test::Spelling";
+    skip("Test::Spelling required for testing POD spelling", 1) if $@;
+    set_spell_cmd('aspell -l --lang=en');
+    add_stopwords(<DATA>);
+    pod_file_spelling_ok('blib/lib/threads.pm', 'thread.pm spelling');
+}
+
+__DATA__
+
+API
+async
+cpan
+MSWin32
+pthreads
+SIGTERM
+TID
+
+Hedden
+Soderberg
+crystalflame
+brecon
+netrus
+vipul
+Ved
+Prakash
+presicient
+
+okay
+unjoinable
+
+__END__
