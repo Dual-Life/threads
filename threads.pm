@@ -5,9 +5,10 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '1.22';
+our $VERSION = '1.23';
 my $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
+
 
 BEGIN {
     # Verify this Perl supports threads
@@ -101,7 +102,7 @@ threads - Perl interpreter-based threads
 
 =head1 VERSION
 
-This document describes threads version 1.22
+This document describes threads version 1.23
 
 =head1 SYNOPSIS
 
@@ -234,12 +235,16 @@ detached, then a warning will be issued. (A program exits either because one
 of its threads explicitly calls L<exit()|perlfunc/"exit EXPR">, or in the case
 of the main thread, reaches the end of the main program file.)
 
+Calling C<-E<gt>join()> or C<-E<gt>detach()> on an already joined thread will
+cause an error to be thrown.
+
 =item $thr->detach()
 
 Makes the thread unjoinable, and causes any eventual return value to be
 discarded.
 
-Calling C<-E<gt>join()> on a detached thread will cause an error to be thrown.
+Calling C<-E<gt>join()> or C<-E<gt>detach()> on an already detached thread
+will cause an error to be thrown.
 
 =item threads->detach()
 
@@ -500,7 +505,7 @@ L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
 Annotated POD for L<threads>:
-L<http://annocpan.org/~JDHEDDEN/threads-1.22/shared.pm>
+L<http://annocpan.org/~JDHEDDEN/threads-1.23/shared.pm>
 
 L<threads::shared>, L<perlthrtut>
 

@@ -1,5 +1,10 @@
 Revision history for Perl extension threads.
 
+1.23 Thu Apr 13 16:57:00 EDT 2006
+	- BUG (RE)FIX: Properly free thread's Perl interpreter
+	- It's an error to detach a thread twice
+	- More XS code cleanups
+
 1.22 Fri Apr  7 21:35:06 EDT 2006
 	- Documented maximum stack size error
 
@@ -34,7 +39,7 @@ Revision history for Perl extension threads.
 	- Use $ENV{PERL_CORE} in tests
 
 1.11 Fri Mar 17 13:24:35 EST 2006
-	- BUG FIX: Proper freeing thread's Perl interpreter
+	- BUG FIX: Properly free thread's Perl interpreter
 	- Removed BUGS POD item regarding returning objects from threads
 	- Enabled closure return test in t/problems.t
 	- Handle deprecation of :unique in tests

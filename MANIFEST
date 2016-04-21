@@ -10,6 +10,8 @@ typemap
 hints/linux.pl
 t/basic.t
 t/end.t
+t/free.t
+t/free2.t
 t/join.t
 t/libc.t
 t/list.t

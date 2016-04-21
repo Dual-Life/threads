@@ -36,7 +36,7 @@ sub skip {
 
 BEGIN {
     $| = 1;
-    print("1..14\n");   ### Number of tests that will be run ###
+    print("1..17\n");   ### Number of tests that will be run ###
 };
 
 use threads;
@@ -139,11 +139,22 @@ if ($^O eq 'linux') {
 
 {
     my $t = threads->create(sub {});
-    $t->join;
-    my $x = threads->create(sub {});
-    $x->join;
-    eval { $t->join; };
+    $t->join();
+    threads->create(sub {})->join();
+    eval { $t->join(); };
     ok(++$test_id, ($@ =~ /Thread already joined/), "Double join works");
+    eval { $t->detach(); };
+    ok(++$test_id, ($@ =~ /Cannot detach a joined thread/), "Detach joined thread");
+}
+
+{
+    my $t = threads->create(sub {});
+    $t->detach();
+    threads->create(sub {})->join();
+    eval { $t->detach(); };
+    ok(++$test_id, ($@ =~ /Thread already detached/), "Double detach works");
+    eval { $t->join(); };
+    ok(++$test_id, ($@ =~ /Cannot join a detached thread/), "Join detached thread");
 }
 
 {
