@@ -1086,6 +1086,9 @@ Perl 5.8.0 or later
 
 =head1 SEE ALSO
 
+Code repository:
+L<https://github.com/Dual-Life/threads>
+
 L<threads> Discussion Forum on CPAN:
 L<http://www.cpanforum.com/dist/threads>
 
