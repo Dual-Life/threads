@@ -445,17 +445,22 @@ sub like_yn ($$$@) {
     # We just accept like(..., qr/.../), not like(..., '...'), and
     # definitely not like(..., '/.../') like
     # Test::Builder::maybe_regex() does.
-    unless (ref($expected) &&  ref($expected) =~ /Regexp/) {
+    unless (re::is_regexp($expected)) {
 	die "PANIC: The value '$expected' isn't a regexp. The like() function needs a qr// pattern, not a string";
     }
 
     my $pass;
     $pass = $_[1] =~ /$expected/ if !$flip;
     $pass = $_[1] !~ /$expected/ if $flip;
+    my $display_got = $_[1];
+    $display_got = display($display_got);
+    my $display_expected = $expected;
+    $display_expected = display($display_expected);
     unless ($pass) {
-	unshift(@mess, "#      got '$_[1]'\n",
+	unshift(@mess, "#      got '$display_got'\n",
 		$flip
-		? "# expected !~ /$expected/\n" : "# expected /$expected/\n");
+		? "# expected !~ /$display_expected/\n"
+                : "# expected /$display_expected/\n");
     }
     local $Level = $Level + 1;
     _ok($pass, _where(), $name, @mess);

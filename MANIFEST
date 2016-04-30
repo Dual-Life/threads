@@ -34,5 +34,3 @@ t/thread.t
 t/test.pl
 examples/pool.pl
 examples/pool_reuse.pl
-META.yml                                 Module YAML meta-data (added by MakeMaker)
-META.json                                Module JSON meta-data (added by MakeMaker)
