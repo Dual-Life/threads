@@ -1086,11 +1086,11 @@ Perl 5.8.0 or later
 
 =head1 SEE ALSO
 
+threads on MetaCPAN:
+L<https://metacpan.org/release/threads>
+
 Code repository:
 L<https://github.com/Dual-Life/threads>
-
-L<threads> Discussion Forum on CPAN:
-L<http://www.cpanforum.com/dist/threads>
 
 L<threads::shared>, L<perlthrtut>
 
@@ -1102,6 +1102,8 @@ L<http://lists.perl.org/list/ithreads.html>
 
 Stack size discussion:
 L<http://www.perlmonks.org/?node_id=532956>
+
+Sample code in the I<examples> directory of this distribution on CPAN.
 
 =head1 AUTHOR
 
