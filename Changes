@@ -3,6 +3,9 @@ Revision history for Perl extension threads.
 -
 	-
 
+2.08 Mon May 16 17:40:57 2016
+	- Make t/test.pl compatible with Perls < 5.10 (again)
+
 2.07 Sat Apr 30 21:31:39 2016
 	- Sync from blead
 
