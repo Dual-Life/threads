@@ -1,7 +1,7 @@
 Revision history for Perl extension threads.
 
 -
-	-
+	- Added t/kill3.t to test that dir handles are thread-safe
 
 2.12 Sat Dec 31 17:50:58 2016
 	- Fix Clang macro
