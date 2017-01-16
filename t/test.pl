@@ -652,7 +652,7 @@ sub _create_runperl { # Create the string to qx in runperl().
 	$runperl = "$ENV{PERL_RUNPERL_DEBUG} $runperl";
     }
     unless ($args{nolib}) {
-	$runperl = $runperl . ' "-I../lib"'; # doublequotes because of VMS
+	$runperl = $runperl . ' "-I../lib" "-I." '; # doublequotes because of VMS
     }
     if ($args{switches}) {
 	local $Level = 2;
@@ -953,11 +953,19 @@ sub register_tempfile {
     return $count;
 }
 
-# This is the temporary file for _fresh_perl
+# This is the temporary file for fresh_perl
 my $tmpfile = tempfile();
 
-sub _fresh_perl {
-    my($prog, $action, $expect, $runperl_args, $name) = @_;
+sub fresh_perl {
+    my($prog, $runperl_args) = @_;
+
+    # Run 'runperl' with the complete perl program contained in '$prog', and
+    # arguments in the hash referred to by '$runperl_args'.  The results are
+    # returned, with $? set to the exit code.  Unless overridden, stderr is
+    # redirected to stdout.
+
+    die sprintf "Third argument to fresh_perl_.* must be hashref of args to fresh_perl (or {})"
+        unless !(defined $runperl_args) || ref($runperl_args) eq 'HASH';
 
     # Given the choice of the mis-parsable {}
     # (we want an anon hash, but a borked lexer might think that it's a block)
@@ -970,12 +978,13 @@ sub _fresh_perl {
     $runperl_args->{progfile} ||= $tmpfile;
     $runperl_args->{stderr}     = 1 unless exists $runperl_args->{stderr};
 
-    open TEST, ">$tmpfile" or die "Cannot open $tmpfile: $!";
+    open TEST, '>', $tmpfile or die "Cannot open $tmpfile: $!";
     print TEST $prog;
     close TEST or die "Cannot close $tmpfile: $!";
 
     my $results = runperl(%$runperl_args);
-    my $status = $?;
+    my $status = $?;    # Not necessary to save this, but it makes it clear to
+                        # future maintainers.
 
     # Clean up the results into something a bit more predictable.
     $results  =~ s/\n+$//;
@@ -993,6 +1002,17 @@ sub _fresh_perl {
         # pipes double these sometimes
         $results =~ s/\n\n/\n/g;
     }
+
+    $? = $status;
+    return $results;
+}
+
+
+sub _fresh_perl {
+    my($prog, $action, $expect, $runperl_args, $name) = @_;
+
+    my $results = fresh_perl($prog, $runperl_args);
+    my $status = $?;
 
     # Use the first line of the program as a name if none was given
     unless( $name ) {
@@ -1058,8 +1078,9 @@ sub fresh_perl_like {
 # Each program is source code to run followed by an "EXPECT" line, followed
 # by the expected output.
 #
-# The code to run may begin with a command line switch such as -w or -0777
-# (alphanumerics only), and may contain (note the '# ' on each):
+# The first line of the code to run may be a command line switch such as -wE
+# or -0777 (alphanumerics only; only one cluster, beginning with a minus is
+# allowed).  Later lines may contain (note the '# ' on each):
 #   # TODO reason for todo
 #   # SKIP reason for skip
 #   # SKIP ?code to test if this should be skipped
@@ -1241,6 +1262,7 @@ sub run_multiple_progs {
 	open my $fh, '>', $tmpfile or die "Cannot open >$tmpfile: $!";
 	print $fh q{
         BEGIN {
+            push @INC, '.';
             open STDERR, '>&', STDOUT
               or die "Can't dup STDOUT->STDERR: $!;";
         }

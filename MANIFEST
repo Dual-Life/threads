@@ -19,6 +19,7 @@ t/free2.t
 t/join.t
 t/kill.t
 t/kill2.t
+t/kill3.t
 t/libc.t
 t/list.t
 t/no_threads.t
