@@ -3,6 +3,9 @@ Revision history for Perl extension threads.
 -
 	-
 
+2.14 Sun Feb 26 21:14:26 2017
+	- Sync from blead
+
 2.13 Sun Feb 26 17:59:01 2017
 	- Added t/kill3.t to test that dir handles are thread-safe
 
