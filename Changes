@@ -1,6 +1,9 @@
 Revision history for Perl extension threads.
 
 -
+	-
+
+2.13 Sun Feb 26 17:59:01 2017
 	- Added t/kill3.t to test that dir handles are thread-safe
 
 2.12 Sat Dec 31 17:50:58 2016
