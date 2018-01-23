@@ -1,6 +1,9 @@
 Revision history for Perl extension threads.
 
 -
+	-
+
+2.21 Mon Jan 22 20:09:07 EST 2018
 	- Fix to CLANG macros
 	- Can return subs from threads.  See docs.
 	- Sync from blead
